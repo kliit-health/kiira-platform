@@ -1,7 +1,7 @@
 name: Docker
 
 env:
-  SRC: apps/members/web
+  SRC: apps/members
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
     name: Deploy members web (DEV)
     runs-on: ubuntu-latest
     env:
-      GCP_APP_NAME: sample-react-app
+      GCP_APP_NAME: kiira-app-members
       IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/$GCP_APP_NAME
     steps:
 
