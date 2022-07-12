@@ -3,8 +3,10 @@ name: Docker
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    paths:
+      - apps/members/web/**
+      - '*.json'
+      - .github/workflows/members-web.yml
 
 jobs:
 
