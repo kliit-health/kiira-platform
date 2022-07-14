@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import ReactDom from "react-dom";
 
 
-const Signup:any = () => {
+const Signup = () => {
   return (
     <div>
    <h1>how are you</h1>
