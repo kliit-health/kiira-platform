@@ -8,7 +8,8 @@ on:
     branches: [ main ]
     paths:
       - $SRC/**
-      - '*.json'
+      - '!$SRC/**/*.md'
+      - '!$SRC/**/*.gitignore'
       - .github/workflows/members-web.yml
 
 jobs:
