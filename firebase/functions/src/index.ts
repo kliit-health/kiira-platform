@@ -11,6 +11,7 @@ import * as acuity from "./acuity";
 import {EitherAsync} from "purify-ts";
 import {AxiosError} from "axios";
 import {error} from "./errors";
+import * as crypto from "crypto";
 
 admin.initializeApp();
 const logger = <Logger>{
@@ -24,11 +25,17 @@ const logger = <Logger>{
 };
 const elation = new ElationApi(elationCredentials(), logger);
 
+
 // noinspection JSUnusedGlobalSymbols
 export const onAcuityAppointmentChanged = functions.https.onRequest(async (request, response) => {
-  const body = request.body;
-  logger.info("Begin execution.", body);
+  if (!verifyWebhookRequest(request)) {
+    logger.info("Hash check failed.");
+    response.sendStatus(401);
+    return;
+  }
 
+  const body = request.body;
+  logger.info("Valid request received.", body);
   const {id, action} = body;
 
   const result = await acuity.getAppointmentAsync(id, logger)
@@ -39,6 +46,14 @@ export const onAcuityAppointmentChanged = functions.https.onRequest(async (reque
   return result.caseOf<void>({_: () => response.status(200).send()});
 });
 
+function verifyWebhookRequest(request: functions.https.Request): boolean {
+  const providedHash = request.header("X-Acuity-Signature");
+  const hasher = crypto.createHmac("sha256", functions.config().acuity.apikey);
+  hasher.update(request.rawBody.toString());
+
+  const calculatedHash = hasher.digest("base64");
+  return calculatedHash === providedHash;
+}
 
 function syncAppointmentToElation(action: string, appt: AcuityAppointment): EitherAsync<Error, void> {
   switch (action) {
