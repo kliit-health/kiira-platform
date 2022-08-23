@@ -1,0 +1,42 @@
+{
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint --ext .js,.ts .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "16"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "acuityscheduling": "^0.1.9",
+    "axios": "^0.27.2",
+    "firebase-admin": "^11.0.1",
+    "firebase-functions": "^3.18.0",
+    "generate-password": "^1.7.0",
+    "purify-ts": "^1.2.2"
+  },
+  "devDependencies": {
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.6.4",
+    "@types/sinon": "^10.0.13",
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^0.2.0",
+    "mocha": "^10.0.0",
+    "sinon": "^14.0.0",
+    "typescript": "^4.5.4",
+    "wait-port": "^0.3.0"
+  },
+  "private": true
+}
