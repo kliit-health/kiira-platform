@@ -1,11 +1,6 @@
 import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
-import {
-  AcuityAppointment, AcuityAppointmentId,
-  ElationAppointmentId,
-  Logger,
-} from "./types";
-import {ElationApi, ElationCredentials} from "./elation";
+import {AcuityAppointment, AcuityAppointmentId, ElationAppointmentId, KiiraSecrets, Logger} from "./types";
+import {ElationApi} from "./elation";
 import * as kiira from "./kiira";
 import * as acuity from "./acuity";
 import {EitherAsync} from "purify-ts";
@@ -13,7 +8,6 @@ import {AxiosError} from "axios";
 import {error} from "./errors";
 import * as crypto from "crypto";
 
-admin.initializeApp();
 const logger = <Logger>{
   info(message: string, data?: unknown): void {
     if (data) {
@@ -23,63 +17,66 @@ const logger = <Logger>{
     }
   },
 };
-const elation = new ElationApi(elationCredentials(), logger);
 
 
 // noinspection JSUnusedGlobalSymbols
-export const onAcuityAppointmentChanged = functions.https.onRequest(async (request, response) => {
-  if (!verifyWebhookRequest(request)) {
-    logger.info("Hash check failed.");
-    response.sendStatus(401);
-    return;
-  }
+export const onAcuityAppointmentChanged = functions.runWith({secrets: ["KIIRA_SECRETS"]}).https.onRequest(
+  async (request, response) => {
+    const secrets = <KiiraSecrets>JSON.parse(<string>process.env.KIIRA_SECRETS);
+    const elation = new ElationApi(secrets.elation, logger);
 
-  const body = request.body;
-  logger.info("Valid request received.", body);
-  const {id, action} = body;
+    if (!verifyWebhookRequest(secrets, request)) {
+      logger.info("Hash check failed.");
+      response.sendStatus(401);
+      return;
+    }
 
-  const result = await acuity.getAppointmentAsync(id, logger)
-    .chain(value => syncAppointmentToElation(action, value))
-    .ifLeft(error => logger.info("Sync to elation failed.", {reason: error.message}))
-    .run();
+    const body = request.body;
+    logger.info("Valid request received.", body);
+    const {id, action} = body;
 
-  return result.caseOf<void>({_: () => response.status(200).send()});
-});
+    const result = await acuity.getAppointmentAsync(secrets, id, logger)
+      .chain(value => syncAppointmentToElation(elation, action, value))
+      .ifLeft(error => logger.info("Sync to elation failed.", {reason: error.message}))
+      .run();
 
-function verifyWebhookRequest(request: functions.https.Request): boolean {
+    return result.caseOf<void>({_: () => response.status(200).send()});
+  });
+
+function verifyWebhookRequest(secrets: KiiraSecrets, request: functions.https.Request): boolean {
   const providedHash = request.header("X-Acuity-Signature");
-  const hasher = crypto.createHmac("sha256", functions.config().acuity.apikey);
+  const hasher = crypto.createHmac("sha256", secrets.acuity.apikey);
   hasher.update(request.rawBody.toString());
 
   const calculatedHash = hasher.digest("base64");
   return calculatedHash === providedHash;
 }
 
-function syncAppointmentToElation(action: string, appt: AcuityAppointment): EitherAsync<Error, void> {
+function syncAppointmentToElation(elation: ElationApi, action: string, appt: AcuityAppointment): EitherAsync<Error, void> {
   switch (action) {
     case "appointment.scheduled":
     case "scheduled":
-      return createAppointmentAsync(appt);
+      return createAppointmentAsync(elation, appt);
     case "appointment.canceled":
     case "canceled":
-      return cancelAppointmentAsync(appt.id);
+      return cancelAppointmentAsync(elation, appt.id);
     case "appointment.rescheduled":
     case "rescheduled":
-      return updateAppointmentAsync(appt.id, appt.datetime);
+      return updateAppointmentAsync(elation, appt.id, appt.datetime);
     default:
       return EitherAsync(({throwE}) => throwE(error(`The '${action}' action is not supported.`)));
   }
 }
 
-function createAppointmentAsync(appt: AcuityAppointment): EitherAsync<Error, void> {
-  return createElationAppointmentAsync(appt)
+function createAppointmentAsync(elation: ElationApi, appt: AcuityAppointment): EitherAsync<Error, void> {
+  return createElationAppointmentAsync(elation, appt)
     .ifRight(value => logger.info(`Elation appointment id is ${value}`))
     .ifLeft(error => logger.info("Failed after appointment create", error))
     .chain(elationId => kiira.createAppointmentMapping(appt.id, elationId))
     .void();
 }
 
-function updateAppointmentAsync(id: AcuityAppointmentId, datetime: string): EitherAsync<Error, void> {
+function updateAppointmentAsync(elation: ElationApi, id: AcuityAppointmentId, datetime: string): EitherAsync<Error, void> {
   return getKiiraAppointmentMappingAsync(id)
     .chain(value => elation.updateAppointmentAsync(value.elationId, datetime))
     .ifRight(() => logger.info("Elation appointment rescheduled successfully."))
@@ -90,7 +87,7 @@ function updateAppointmentAsync(id: AcuityAppointmentId, datetime: string): Eith
     });
 }
 
-function cancelAppointmentAsync(id: AcuityAppointmentId): EitherAsync<Error, void> {
+function cancelAppointmentAsync(elation: ElationApi, id: AcuityAppointmentId): EitherAsync<Error, void> {
   return getKiiraAppointmentMappingAsync(id)
     .chain(value => elation.cancelAppointmentAsync(value.elationId))
     .ifRight(() => logger.info(`Elation appointment ${id} cancelled successfully.`))
@@ -101,16 +98,16 @@ function cancelAppointmentAsync(id: AcuityAppointmentId): EitherAsync<Error, voi
     });
 }
 
-function createElationAppointmentAsync(appt: AcuityAppointment): EitherAsync<Error, ElationAppointmentId> {
+function createElationAppointmentAsync(elation: ElationApi, appt: AcuityAppointment): EitherAsync<Error, ElationAppointmentId> {
   return EitherAsync(async ({fromPromise}) => {
       const invitation = await fromPromise(kiira.getOrCreateInvitationAsync(appt, logger));
-      const physician = await fromPromise(getPhysicianAsync(appt));
+      const physician = await fromPromise(getPhysicianAsync(elation, appt));
       return fromPromise(elation.createAppointmentAsync(appt, invitation, physician, logger));
     },
   );
 }
 
-function getPhysicianAsync(appt: AcuityAppointment) {
+function getPhysicianAsync(elation: ElationApi, appt: AcuityAppointment) {
   return kiira.getPhysicianAsync(appt.calendarID, logger)
     .chain(value => elation.getPhysicianAsync(appt, value));
 }
@@ -118,14 +115,4 @@ function getPhysicianAsync(appt: AcuityAppointment) {
 function getKiiraAppointmentMappingAsync(id: AcuityAppointmentId) {
   return kiira.getAppointmentMappingByAcuityId(id, logger)
     .ifRight(value => logger.info("Acuity appointment id mapping found.", {ids: value}));
-}
-
-function elationCredentials(): ElationCredentials {
-  return {
-    grant_type: "password",
-    username: "2670-424@api.elationemr.com",
-    password: "a739a9bc963c4f7afaa18b037288c622",
-    client_id: "KNnT7QvNbkw9SZJ4rq1MextX4jjxVThaj6ls7PsJ",
-    client_secret: "x6Byf2GUYtxNYChgRTZQwX0kM2eBM8VLYkXkSGi1qlRA7YdeBqcBRkGwm3ycYzCg4X2PsEtMv0ANDHjxXSCV100ylW5nTE9FMTjxEbLuT8ZuIlcQZYzHEvBVFdnfqQ1M",
-  };
 }
