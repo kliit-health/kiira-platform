@@ -1,17 +1,19 @@
 import * as Acuity from "acuityscheduling";
-import {AcuityAppointment, KiiraSecrets, Logger} from "./types";
+import {AcuityAppointment, Logger} from "./types";
 import {reason} from "./errors";
 import {EitherAsync} from "purify-ts";
 
 
-function authorizedAcuity(secrets: KiiraSecrets) {
+type AcuitySecrets = { userid: string; apikey: string };
+
+function authorizedAcuity(secrets: AcuitySecrets) {
   return Acuity.basic({
-    userId: secrets.acuity.userid,
-    apiKey: secrets.acuity.apikey,
+    userId: secrets.userid,
+    apiKey: secrets.apikey,
   });
 }
 
-export function getAppointmentAsync(secrets: KiiraSecrets, id: string, logger: Logger): EitherAsync<Error, AcuityAppointment> {
+export function getAppointmentAsync(secrets: AcuitySecrets, id: string, logger: Logger): EitherAsync<Error, AcuityAppointment> {
   return EitherAsync(() => {
     return new Promise((resolve, reject) => {
       logger.info(`Requesting acuity appointment ${id}.`);

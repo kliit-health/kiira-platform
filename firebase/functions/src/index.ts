@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import {AcuityAppointment, AcuityAppointmentId, ElationAppointmentId, KiiraSecrets, Logger} from "./types";
-import {ElationApi} from "./elation";
+import {ElationApi, authenticate} from "./elation";
 import * as kiira from "./kiira";
 import * as acuity from "./acuity";
 import {EitherAsync} from "purify-ts";
@@ -19,13 +19,21 @@ const logger = <Logger>{
 };
 
 
+function syncAppointment(secrets: KiiraSecrets, id: string, action: string) {
+  return EitherAsync<Error, void>(async ({fromPromise}) => {
+    const elationAuth = await fromPromise(authenticate(secrets.elation, logger));
+    const elation = new ElationApi(elationAuth, logger);
+    const appointment = await fromPromise(acuity.getAppointmentAsync(secrets.acuity, id, logger));
+    return fromPromise(syncAppointmentToElation(elation, action, appointment));
+  });
+}
+
 // noinspection JSUnusedGlobalSymbols
 export const onAcuityAppointmentChanged = functions.runWith({secrets: ["KIIRA_SECRETS"]}).https.onRequest(
   async (request, response) => {
     const secrets = <KiiraSecrets>JSON.parse(<string>process.env.KIIRA_SECRETS);
-    const elation = new ElationApi(secrets.elation, logger);
 
-    if (!verifyWebhookRequest(secrets, request)) {
+    if (!verifyWebhookRequest(secrets.acuity.apikey, request)) {
       logger.info("Hash check failed.");
       response.sendStatus(401);
       return;
@@ -35,17 +43,16 @@ export const onAcuityAppointmentChanged = functions.runWith({secrets: ["KIIRA_SE
     logger.info("Valid request received.", body);
     const {id, action} = body;
 
-    const result = await acuity.getAppointmentAsync(secrets, id, logger)
-      .chain(value => syncAppointmentToElation(elation, action, value))
+    const result = await syncAppointment(secrets, id, action)
       .ifLeft(error => logger.info("Sync to elation failed.", {reason: error.message}))
       .run();
 
     return result.caseOf<void>({_: () => response.status(200).send()});
   });
 
-function verifyWebhookRequest(secrets: KiiraSecrets, request: functions.https.Request): boolean {
+function verifyWebhookRequest(acuityApiKey: string, request: functions.https.Request): boolean {
   const providedHash = request.header("X-Acuity-Signature");
-  const hasher = crypto.createHmac("sha256", secrets.acuity.apikey);
+  const hasher = crypto.createHmac("sha256", acuityApiKey);
   hasher.update(request.rawBody.toString());
 
   const calculatedHash = hasher.digest("base64");

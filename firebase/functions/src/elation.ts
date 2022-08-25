@@ -178,7 +178,7 @@ function postAppointment(auth: ElationAuth, elationAppt: ElationAppointment, log
     .map(({data}) => data.id);
 }
 
-function authenticate(credentials: ElationCredentials, logger: Logger): EitherAsync<Error, ElationAuth> {
+export function authenticate(credentials: ElationCredentials, logger: Logger): EitherAsync<Error, ElationAuth> {
   const body = new URLSearchParams({...credentials});
   const config = {
     headers: {"Content-type": "application/x-www-form-urlencoded"},
@@ -211,20 +211,16 @@ function getOrCreatePatient(
     .alt(createPatient(auth, invitation, appt, physician, logger));
 }
 
-function patchAppointmentTime(id: ElationAppointmentId, datetime: string) {
-  return (auth: ElationAuth) => {
-    const config = headers(auth);
-    const promise = axios.patch(ELATION_APPOINTMENTS_URL + `/${id}`, {scheduled_date: new Date(datetime)}, config);
-    return EitherAsync<Error, unknown>(() => promise).void();
-  };
+function patchAppointmentTime(auth: ElationAuth, id: ElationAppointmentId, datetime: string) {
+  const config = headers(auth);
+  const promise = axios.patch(ELATION_APPOINTMENTS_URL + `/${id}`, {scheduled_date: new Date(datetime)}, config);
+  return EitherAsync<Error, unknown>(() => promise).void();
 }
 
-function patchAppointmentCancelled(id: ElationAppointmentId) {
-  return (auth: ElationAuth) => {
-    const config = headers(auth);
-    const promise = axios.patch(ELATION_APPOINTMENTS_URL + `/${id}`, {status: {status: "Cancelled"}}, config);
-    return EitherAsync<Error, unknown>(() => promise).void();
-  };
+function patchAppointmentCancelled(auth: ElationAuth, id: ElationAppointmentId) {
+  const config = headers(auth);
+  const promise = axios.patch(ELATION_APPOINTMENTS_URL + `/${id}`, {status: {status: "Cancelled"}}, config);
+  return EitherAsync<Error, unknown>(() => promise).void();
 }
 
 function headers(auth: ElationAuth) {
@@ -246,26 +242,12 @@ function getPhysicianName(expertName: string): Either<Error, NonEmptyList<Name>>
 }
 
 export class ElationApi {
-  credentials: ElationCredentials;
   logger: Logger;
-  elationAuth?: ElationAuth;
+  auth: ElationAuth;
 
-  constructor(credentials: ElationCredentials, logger: Logger) {
-    this.credentials = credentials;
+  constructor(auth: ElationAuth, logger: Logger) {
+    this.auth = auth;
     this.logger = logger;
-  }
-
-  authorize(): EitherAsync<Error, ElationAuth> {
-    return EitherAsync(async ({fromPromise}) => {
-      if (this.elationAuth) {
-        return this.elationAuth;
-      }
-
-      return fromPromise(
-        authenticate(this.credentials, this.logger)
-          .ifRight(value => this.elationAuth = value),
-      );
-    });
   }
 
   createAppointmentAsync(
@@ -277,9 +259,8 @@ export class ElationApi {
     return EitherAsync(async ({fromPromise}) => {
       const {firstName, lastName} = appt;
 
-      const auth = await fromPromise(this.authorize());
       const patient = await fromPromise(
-        getOrCreatePatient(auth, firstName, lastName, invitation, appt, physician, this.logger),
+        getOrCreatePatient(this.auth, firstName, lastName, invitation, appt, physician, this.logger),
       );
 
       const elationAppt: ElationAppointment = {
@@ -290,27 +271,26 @@ export class ElationApi {
         duration: parseInt(appt.duration),
         reason: "Check intake form.",
       };
-      return fromPromise(postAppointment(auth, elationAppt, logger));
+      return fromPromise(postAppointment(this.auth, elationAppt, logger));
     });
   }
 
   getPhysicianAsync(appt: AcuityAppointment, physician: KiiraPhysician): EitherAsync<Error, ElationPhysician> {
     return EitherAsync(async ({fromPromise, liftEither}) => {
-      const auth = await fromPromise(this.authorize());
       const expertName: NonEmptyList<Name> = await liftEither(getPhysicianName(physician.expertName));
 
       const firstName = NonEmptyList.head(expertName);
       const lastName = NonEmptyList.last(expertName);
 
-      return fromPromise(getPhysician(auth, this.logger, {first_name: firstName, last_name: lastName}));
+      return fromPromise(getPhysician(this.auth, this.logger, {first_name: firstName, last_name: lastName}));
     });
   }
 
   updateAppointmentAsync(elationId: ElationAppointmentId, datetime: string): EitherAsync<Error, void> {
-    return this.authorize().chain(patchAppointmentTime(elationId, datetime));
+    return patchAppointmentTime(this.auth, elationId, datetime);
   }
 
   cancelAppointmentAsync(elationId: ElationAppointmentId): EitherAsync<Error, void> {
-    return this.authorize().chain(patchAppointmentCancelled(elationId));
+    return patchAppointmentCancelled(this.auth, elationId);
   }
 }
