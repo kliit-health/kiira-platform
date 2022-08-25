@@ -13,8 +13,10 @@ import {
   Logger,
 } from "./types";
 import {AxiosError, AxiosResponse, default as axios} from "axios";
-import {Either, EitherAsync, List, Maybe, NonEmptyList} from "purify-ts";
+import {date as dateCodec, Either, EitherAsync, List, Maybe, NonEmptyList} from "purify-ts";
 import {error} from "./errors";
+import {format as dateFormatter} from "date-fns/fp";
+
 
 const ELATION_BASE_URL = "https://sandbox.elationemr.com/api/2.0";
 const ELATION_OAUTH_URL = `${ELATION_BASE_URL}/oauth2/token/`;
@@ -39,17 +41,18 @@ function createPatient(
   physician: ElationPhysician,
   logger: Logger,
 ): EitherAsync<Error, ElationPatient> {
-  const dateString = List.find((form: AcuityForm) => form.id === 2131591)(appointment.forms)
+  const dob = List.find((form: AcuityForm) => form.id === 2131591, appointment.forms)
     .map(form => form.values)
     .chain(List.find(field => field.fieldID === 11897600))
-    .map(field => field.value)
+    .chain(({value}) => dateCodec.decode(value).toMaybe())
+    .map(dateFormatter("yyyy-MM-dd"))
     .orDefault("1900-01-01");
 
   return EitherAsync(async ({fromPromise}) => {
     const patient = {
       first_name: appointment.firstName,
       last_name: appointment.lastName,
-      dob: new Date(dateString),
+      dob,
       sex: "Unknown",
       primary_physician: physician.id,
       caregiver_practice: physician.practice,

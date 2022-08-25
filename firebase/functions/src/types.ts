@@ -84,7 +84,6 @@ export interface ElationAuth {
   readonly expires_in: number;
   readonly token_type: string;
   readonly scope: string;
-  readonly refresh_token: string;
 }
 
 export interface KiiraInvitation {
