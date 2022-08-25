@@ -7,6 +7,7 @@ import {
   ElationEmail,
   ElationPatient,
   ElationPhysician,
+  AcuityForm,
   KiiraInvitation,
   KiiraPhysician,
   Logger,
@@ -30,6 +31,7 @@ function axiosPromiseAsEitherAsync(axiosPromise: () => Promise<AxiosResponse>): 
     );
 }
 
+
 function createPatient(
   auth: ElationAuth,
   invitation: KiiraInvitation,
@@ -37,11 +39,17 @@ function createPatient(
   physician: ElationPhysician,
   logger: Logger,
 ): EitherAsync<Error, ElationPatient> {
+  const dateString = List.find((form: AcuityForm) => form.id === 2131591)(appointment.forms)
+    .map(form => form.values)
+    .chain(List.find(field => field.fieldID === 11897600))
+    .map(field => field.value)
+    .orDefault("1900-01-01");
+
   return EitherAsync(async ({fromPromise}) => {
     const patient = {
       first_name: appointment.firstName,
       last_name: appointment.lastName,
-      dob: "1900-01-01",
+      dob: new Date(dateString),
       sex: "Unknown",
       primary_physician: physician.id,
       caregiver_practice: physician.practice,
