@@ -1,4 +1,5 @@
 import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 import {AcuityAppointment, AcuityAppointmentId, ElationAppointmentId, KiiraSecrets, Logger} from "./types";
 import {ElationApi, authenticate} from "./elation";
 import * as kiira from "./kiira";
@@ -7,6 +8,8 @@ import {EitherAsync} from "purify-ts";
 import {AxiosError} from "axios";
 import {error} from "./errors";
 import * as crypto from "crypto";
+
+admin.initializeApp();
 
 const logger = <Logger>{
   info(message: string, data?: unknown): void {
