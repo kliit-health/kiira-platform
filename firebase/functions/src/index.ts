@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import {AcuityAppointment, AcuityAppointmentId, ElationAppointmentId, KiiraSecrets, Logger} from "./types";
-import {ElationApi, authenticate} from "./elation";
+import {authenticate, ElationApi} from "./elation";
 import * as kiira from "./kiira";
 import * as acuity from "./acuity";
 import {EitherAsync} from "purify-ts";
@@ -47,7 +47,7 @@ export const onAcuityAppointmentChanged = functions.runWith({secrets: ["KIIRA_SE
     const {id, action} = body;
 
     const result = await syncAppointment(secrets, id, action)
-      .ifLeft(error => logger.info("Sync to elation failed.", {reason: error.message}))
+      .ifLeft(error => logger.info("Sync to elation failed.", {reason: {message: error.message, error}}))
       .run();
 
     return result.caseOf<void>({_: () => response.status(200).send()});

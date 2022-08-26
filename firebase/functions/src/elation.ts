@@ -1,5 +1,6 @@
 import {
   AcuityAppointment,
+  AcuityForm,
   ElationAppointment,
   ElationAppointmentId,
   ElationAuth,
@@ -7,7 +8,6 @@ import {
   ElationEmail,
   ElationPatient,
   ElationPhysician,
-  AcuityForm,
   KiiraInvitation,
   KiiraPhysician,
   Logger,
@@ -44,15 +44,15 @@ function createPatient(
   const dob = List.find((form: AcuityForm) => form.id === 2131591, appointment.forms)
     .map(form => form.values)
     .chain(List.find(field => field.fieldID === 11897600))
-    .chain(({value}) => dateCodec.decode(value).toMaybe())
-    .map(dateFormatter("yyyy-MM-dd"))
-    .orDefault("1900-01-01");
+    .map(({value}) => value)
+    .chain(value => dateCodec.decode(value).toMaybe())
+    .orDefault(new Date());
 
   return EitherAsync(async ({fromPromise}) => {
     const patient = {
       first_name: appointment.firstName,
       last_name: appointment.lastName,
-      dob,
+      dob: dateFormatter("yyyy-MM-dd", dob),
       sex: "Unknown",
       primary_physician: physician.id,
       caregiver_practice: physician.practice,
