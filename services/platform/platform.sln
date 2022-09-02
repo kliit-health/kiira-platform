@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F25C0BBB-C4D5-48A4-87B3-EF05043283DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiira.Platform.Worker.Api", "src\Kiira.Platform.Worker.Api\Kiira.Platform.Worker.Api.csproj", "{B3839DAC-12A7-4280-B44D-EA0E8C3A94C8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{EB3395B3-3A7C-4AE9-951D-478C4F9EFB27}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiira.Platform.Worker.Api.Tests", "test\Kiira.Platform.Worker.Api.Tests\Kiira.Platform.Worker.Api.Tests.csproj", "{A1582D6B-532A-4381-AD62-D6E51584A3EA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B3839DAC-12A7-4280-B44D-EA0E8C3A94C8} = {F25C0BBB-C4D5-48A4-87B3-EF05043283DA}
+		{A1582D6B-532A-4381-AD62-D6E51584A3EA} = {EB3395B3-3A7C-4AE9-951D-478C4F9EFB27}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B3839DAC-12A7-4280-B44D-EA0E8C3A94C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3839DAC-12A7-4280-B44D-EA0E8C3A94C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3839DAC-12A7-4280-B44D-EA0E8C3A94C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3839DAC-12A7-4280-B44D-EA0E8C3A94C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1582D6B-532A-4381-AD62-D6E51584A3EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1582D6B-532A-4381-AD62-D6E51584A3EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1582D6B-532A-4381-AD62-D6E51584A3EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1582D6B-532A-4381-AD62-D6E51584A3EA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

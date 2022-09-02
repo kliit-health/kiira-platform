@@ -1,0 +1,58 @@
+name: Deploy Platform Microservice
+
+env:
+  SRC_PATH: services/platform
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/services-platform*.yml'
+      - '$srcpath/**'
+      - '!$srcpath/**/*.md'
+      - '!$srcpath/**/*.gitignore'
+
+jobs:
+  deploy:
+    name: Deploy Platform Microservice Containers
+    runs-on: ubuntu-latest
+    env:
+      ENV_NAME: Production
+      GCR_HOST: us-central1-docker.pkg.dev
+      API_GCR_NAME: platform-api
+      API_IMAGE_NAME: ${GCR_HOST}/${{ secrets.GCP_PROJECT_ID }}/platform/api
+    environment: production
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      
+      - name: authenticate
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_SVC_ACCT_CREDS }}
+      
+      - name: configure gcr
+        uses: google-github-actions/setup-gcloud@v0
+      
+      - name: configure docker
+        run: gcloud auth configure-docker ${GCR_HOST} --quiet
+      
+      # build each dockerfile in microservice
+      - name: build docker image(s)
+        run: |
+          docker build \
+            --build-arg ASPNETCORE_ENVIRONMENT=${ENV_NAME} \
+            -f ${SRC_PATH}/src/Kiira.Platform.Worker.Api/Dockerfile \
+            -t ${API_IMAGE_NAME} ./${SRC_PATH}
+      
+      # push each image to repository
+      - name: push docker image
+        run: |
+          docker push ${API_IMAGE_NAME}
+
+      # deploy each image to gcloud to all regions
+      - name: deploy docker image(s)
+        run: |
+          gcloud run deploy ${API_GCR_NAME} --image ${API_IMAGE_NAME} --region us-central1 \
+            --platform managed --allow-unauthenticated
