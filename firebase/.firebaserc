@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "kiira-health-dev"
-  }
+    "default": "kiira-health-dev",
+    "dev": "kiira-health-dev",
+    "prod": "kiira-health-app"
+  },
+  "targets": {},
+  "etags": {}
 }

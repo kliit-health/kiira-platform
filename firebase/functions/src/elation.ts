@@ -18,7 +18,7 @@ import {error} from "./errors";
 import {format as dateFormatter} from "date-fns/fp";
 
 
-const ELATION_BASE_URL = "https://sandbox.elationemr.com/api/2.0";
+const ELATION_BASE_URL = process.env.ELATION_BASE_URL;
 const ELATION_OAUTH_URL = `${ELATION_BASE_URL}/oauth2/token/`;
 const ELATION_PATIENTS_URL = `${ELATION_BASE_URL}/patients/`;
 const ELATION_PHYSICIANS_URL = `${ELATION_BASE_URL}/physicians/`;
