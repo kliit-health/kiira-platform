@@ -124,7 +124,7 @@ function invitationFromAppointment(appt: AcuityAppointment, invitationId: string
     firstLogin: true,
     agreeToTerms: false,
     profileInfo: {phoneNumber: phone, firstName, lastName, email},
-    status: "Processing",
+    status: `${process.env.INVITATION_STATUS}`,
   };
 }
 
