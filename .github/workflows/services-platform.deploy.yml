@@ -6,7 +6,7 @@ env:
 on:
   push:
     branches:
-      - main
+      - 'non-existent-branch-for-no-deployment'
     paths:
       - '.github/workflows/services-platform*.yml'
       - '$srcpath/**'
