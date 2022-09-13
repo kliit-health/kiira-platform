@@ -2,13 +2,6 @@
 
 Monorepository for all of Kiira Health's microservices.
 
-### Repository Structure
+## [EHR Microservice Canvas](/services/canvas.ehr.md)
 
-```
-> kiira-platform
-    > services
-        > [service-name]
-            > src
-            > test
-            - service-name.sln
-```
+## [Members Microservice Canvas](/services/canvas.members.md)
