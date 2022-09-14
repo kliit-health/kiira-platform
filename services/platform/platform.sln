@@ -8,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{EB3395B3-3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiira.Platform.Worker.Api.Tests", "test\Kiira.Platform.Worker.Api.Tests\Kiira.Platform.Worker.Api.Tests.csproj", "{A1582D6B-532A-4381-AD62-D6E51584A3EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiira.Platform.Core.Domain", "src\Kiira.Platform.Core.Domain\Kiira.Platform.Core.Domain.csproj", "{FEF85AD5-5D5E-4588-B44F-41981858AE5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,6 +18,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{B3839DAC-12A7-4280-B44D-EA0E8C3A94C8} = {F25C0BBB-C4D5-48A4-87B3-EF05043283DA}
 		{A1582D6B-532A-4381-AD62-D6E51584A3EA} = {EB3395B3-3A7C-4AE9-951D-478C4F9EFB27}
+		{FEF85AD5-5D5E-4588-B44F-41981858AE5F} = {F25C0BBB-C4D5-48A4-87B3-EF05043283DA}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B3839DAC-12A7-4280-B44D-EA0E8C3A94C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -26,5 +29,9 @@ Global
 		{A1582D6B-532A-4381-AD62-D6E51584A3EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1582D6B-532A-4381-AD62-D6E51584A3EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1582D6B-532A-4381-AD62-D6E51584A3EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEF85AD5-5D5E-4588-B44F-41981858AE5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEF85AD5-5D5E-4588-B44F-41981858AE5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEF85AD5-5D5E-4588-B44F-41981858AE5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEF85AD5-5D5E-4588-B44F-41981858AE5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
