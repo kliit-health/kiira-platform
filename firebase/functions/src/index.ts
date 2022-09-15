@@ -13,7 +13,8 @@ try {
 
 // create context for dependency injection
 const context: Context = {
-  functions: functions.FunctionBuilder.prototype, logger: <Logger>{
+  functions: functions.FunctionBuilder.prototype,
+  logger: <Logger>{
     info(message: string, data?: unknown): void {
       if (data) {
         functions.logger.log(message, data);
@@ -49,10 +50,8 @@ function exportFunc(func: string, file: string) {
     // execute higher-order function to allow us to pass
     // admin sdk and functions components for easier testing
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const GoogleCloudFunction = require(file);
-    const googleCloudFunction = GoogleCloudFunction(context);
-
-    exports[func] = googleCloudFunction;
+    const gcpFunction = require(file);
+    exports[func] = gcpFunction(context);
   }
 }
 
