@@ -18,7 +18,6 @@ module.exports = {
     sourceType: "module",
   },
   ignorePatterns: [
-    "index.js",
     "/lib/**/*", // Ignore built files.
   ],
   plugins: [
