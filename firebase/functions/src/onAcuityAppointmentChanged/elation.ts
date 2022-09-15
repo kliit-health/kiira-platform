@@ -10,12 +10,12 @@ import {
   ElationPhysician,
   KiiraInvitation,
   KiiraPhysician,
-  Logger,
 } from "./types";
 import {AxiosError, AxiosResponse, default as axios} from "axios";
 import {date as dateCodec, Either, EitherAsync, List, Maybe, NonEmptyList} from "purify-ts";
 import {error} from "./errors";
 import {format as dateFormatter} from "date-fns/fp";
+import {Logger} from "../logging";
 
 
 const ELATION_BASE_URL = process.env.ELATION_BASE_URL;

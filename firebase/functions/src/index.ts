@@ -2,17 +2,25 @@ import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 import * as glob from "glob";
 import {Context} from "./ioc";
+import {Logger} from "./logging";
 
 // initialize firebase admin
-try {
-  admin.initializeApp();
-  admin.firestore().settings({ignoreUndefinedProperties: true});
-} catch (err) {
-  console.error(err);
-}
+const app = admin.initializeApp();
+app.firestore().settings({ignoreUndefinedProperties: true});
 
 // create context for dependency injection
-const context: Context = {admin, functions, environment: process.env.NODE_ENV};
+const context: Context = {
+  functions: functions.FunctionBuilder.prototype,
+  logger: <Logger>{
+    info(message: string, data?: unknown): void {
+      if (data) {
+        functions.logger.log(message, data);
+      } else {
+        functions.logger.log(message);
+      }
+    },
+  },
+};
 
 function getFuncFiles() {
   return glob.sync("./src/**/*.func.ts", {

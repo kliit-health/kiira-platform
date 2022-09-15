@@ -1,8 +1,7 @@
-import {app} from "firebase-admin";
-import App = app.App;
+import {Logger} from "./logging";
+import {FunctionBuilder} from "firebase-functions";
 
 export interface Context {
-  admin: App,
-  functions: unknown,
-  environment: string
+  functions: FunctionBuilder,
+  logger: Logger
 }

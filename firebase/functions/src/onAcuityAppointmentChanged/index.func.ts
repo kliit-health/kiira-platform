@@ -1,6 +1,4 @@
-import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
-import {AcuityAppointment, AcuityAppointmentId, ElationAppointmentId, KiiraSecrets, Logger} from "./types";
+import {AcuityAppointment, AcuityAppointmentId, ElationAppointmentId, KiiraSecrets} from "./types";
 import {authenticate, ElationApi} from "./elation";
 import * as kiira from "./kiira";
 import * as acuity from "./acuity";
@@ -9,19 +7,9 @@ import {AxiosError} from "axios";
 import {error} from "./errors";
 import * as crypto from "crypto";
 import {Context} from "../ioc";
+import {Logger} from "../logging";
 
-admin.initializeApp();
-
-const logger = <Logger>{
-  info(message: string, data?: unknown): void {
-    if (data) {
-      functions.logger.log(message, data);
-    } else {
-      functions.logger.log(message);
-    }
-  },
-};
-
+let logger!: Logger;
 
 function syncAppointment(secrets: KiiraSecrets, id: string, action: string) {
   return EitherAsync<Error, void>(async ({fromPromise}) => {
@@ -32,34 +20,36 @@ function syncAppointment(secrets: KiiraSecrets, id: string, action: string) {
   });
 }
 
-module.exports = (context: Context) => functions.runWith({secrets: ["KIIRA_SECRETS"]}).https.onRequest(
-  async (request, response) => {
-    const secrets = <KiiraSecrets>JSON.parse(<string>process.env.KIIRA_SECRETS);
+module.exports = (context: Context) => {
+  logger = context.logger;
+  return context.functions.runWith({secrets: ["KIIRA_SECRETS"]}).https.onRequest(
+    async (request, response) => {
+      const secrets = <KiiraSecrets>JSON.parse(<string>process.env.KIIRA_SECRETS);
 
-    if (!verifyWebhookRequest(secrets.acuity.apikey, request)) {
-      logger.info("Hash check failed.");
-      response.sendStatus(401);
-      return;
-    }
+      if (!verifyWebhookRequest(secrets.acuity.apikey, request.header("X-Acuity-Signature"), request.rawBody)) {
+        logger.info("Hash check failed.");
+        response.sendStatus(401);
+        return;
+      }
 
-    const body = request.body;
-    logger.info("Valid request received.", body);
-    const {id, action} = body;
+      const body = request.body;
+      logger.info("Valid request received.", body);
+      const {id, action} = body;
 
-    const result = await syncAppointment(secrets, id, action)
-      .ifLeft(error => logger.info("Sync to elation failed.", {reason: {message: error.message, error}}))
-      .run();
+      const result = await syncAppointment(secrets, id, action)
+        .ifLeft(error => logger.info("Sync to elation failed.", {reason: {message: error.message, error}}))
+        .run();
 
-    return result.caseOf<void>({_: () => response.status(200).send()});
-  });
+      return result.caseOf<void>({_: () => response.status(200).send()});
+    });
+};
 
-function verifyWebhookRequest(acuityApiKey: string, request: functions.https.Request): boolean {
-  const providedHash = request.header("X-Acuity-Signature");
+function verifyWebhookRequest(acuityApiKey: string, hash: string | undefined, buffer: Buffer): boolean {
   const hasher = crypto.createHmac("sha256", acuityApiKey);
-  hasher.update(request.rawBody.toString());
+  hasher.update(buffer.toString());
 
   const calculatedHash = hasher.digest("base64");
-  return calculatedHash === providedHash;
+  return calculatedHash === hash;
 }
 
 function syncAppointmentToElation(elation: ElationApi, action: string, appt: AcuityAppointment): EitherAsync<Error, void> {

@@ -114,7 +114,3 @@ export interface KiiraPhysician {
   readonly email: string;
   readonly expertName: string;
 }
-
-export interface Logger {
-  info(message: string, data?: unknown): void;
-}
