@@ -1,7 +1,8 @@
 import * as Acuity from "acuityscheduling";
-import {AcuityAppointment, Logger} from "./types";
+import {AcuityAppointment} from "./types";
 import {reason} from "./errors";
 import {EitherAsync} from "purify-ts";
+import {Logger} from "../logging";
 
 
 type AcuitySecrets = { userid: string; apikey: string };

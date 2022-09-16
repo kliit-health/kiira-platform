@@ -1,16 +1,10 @@
-import {
-  AcuityAppointment,
-  AcuityAppointmentId,
-  ElationAppointmentId,
-  KiiraInvitation,
-  KiiraPhysician,
-  Logger,
-} from "./types";
+import {AcuityAppointment, AcuityAppointmentId, ElationAppointmentId, KiiraInvitation, KiiraPhysician} from "./types";
 import * as admin from "firebase-admin";
+import {firestore} from "firebase-admin";
 import {generate as generateId} from "generate-password";
 import {error, NoResultsError} from "./errors";
 import {Either, EitherAsync, List} from "purify-ts";
-import {firestore} from "firebase-admin";
+import {Logger} from "../logging";
 import Firestore = firestore.Firestore;
 import WriteResult = firestore.WriteResult;
 

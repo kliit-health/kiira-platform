@@ -22,10 +22,12 @@
     "firebase-admin": "^11.0.1",
     "firebase-functions": "^3.18.0",
     "generate-password": "^1.7.0",
+    "glob": "^8.0.3",
     "purify-ts": "^1.2.2"
   },
   "devDependencies": {
     "@types/chai": "^4.3.3",
+    "@types/glob": "^8.0.0",
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.6.4",
     "@types/sinon": "^10.0.13",
