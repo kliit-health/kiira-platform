@@ -13,7 +13,7 @@ try {
 
 // create context for dependency injection
 const context: Context = {
-  functions: functions.FunctionBuilder.prototype,
+  functions: functions,
   logger: <Logger>{
     info(message: string, data?: unknown): void {
       if (data) {
