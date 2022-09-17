@@ -1,53 +1,58 @@
 
-import * as kiira from "./kiira";
-import * as functions from 'firebase-functions';
-import * as updateUser from "./updateUser";
-import * as toCamelCase from "./toCamelCase";
+//import * as functions from 'firebase-functions';
+import * as updateData from './updateData';
+import * as getData from './getData';
+
 
 //Where is the update user function
 //Where is he update subscription function
 
 
-module.exports = (userID : string , actionID : string ) => {
+export = (userID : string , operationID : string ) => {
 
     //functions.https.onCall(async ({subscriptionInfo}, response) => {
 
-        var user;//Get user from ID
-        var action;//Get action from ID
+        //async
+        var user = getData.GetUser(userID);
 
-        
+        //async
+        var action = getData.GetOperation(operationID);
 
-        //if we are adding a subscription 
-        if(true) await AddSubscriptionToUser(metadata);
+        //Extract relevent values from operation
+        var creditsToAdd : Number = 0;
+        var visitsToAdd : Number = 0;
 
-        //if we are cancelling a subscription 
-        else await RemoveSubscriptionFromUser(metadata);
 
+
+
+        //Determine if the operation involves adding or subtracting
+        //if we are adding 
+        if(true) AddSubscriptionToUser(creditsToAdd,visitsToAdd);
+
+        //if we are cancelling  
+        else RemoveSubscriptionFromUser(creditsToAdd,visitsToAdd);
+
+        //
+        updateData.UpdateUser();
     }
 
     
-    function AddSubscriptionToUser (metadata : string)  {
+    function Update (credits : Number,visits : Number,)  {
         
         //calculate the desired visitor number
-        //calculate the desired credits number
-        await updateUser(metadata.uid, {
-            //visits,
-            //credit
-        })
+
+        
         
         //return response.send(details).status(200)
         
     }
 
-    function RemoveSubscriptionFromUser (metadata : string) {
+    function RemoveFromUser (credits : Number,visits : Number,) {
 
         //calculate the desired visitor number
-        //calculate the desired credits number
-        await updateUser(metadata.uid, {
-            //visits,
-            //credits
-        })
-        
+
+        await updateData.UpdateOperation();
+
       //  return response.send(details).status(200)
 
     
@@ -57,9 +62,5 @@ module.exports = (userID : string , actionID : string ) => {
     }
 
 
-    function GetUser(uid : string){
 
 
-
-
-    }

@@ -1,0 +1,19 @@
+const admin = require('firebase-admin')
+
+module.exports = (uid, { ...rest }) => {
+	const database = admin.firestore()
+
+	return new Promise((resolve, reject) =>
+		(async function () {
+			const user = database.collection('users').doc(uid)
+			const data = { ...rest, updatedAt: Date.now(), uid }
+
+			try {
+				await user.set(data, { merge: true })
+				resolve(data)
+			} catch (error) {
+				reject(error)
+			}
+		})()
+	)
+}
