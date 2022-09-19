@@ -2,9 +2,9 @@
   "name": "functions",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
+    "serve": "firebase serve --only functions",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
@@ -23,6 +23,7 @@
     "firebase-functions": "^3.18.0",
     "generate-password": "^1.7.0",
     "glob": "^8.0.3",
+    "moment": "^2.29.4",
     "purify-ts": "^1.2.2"
   },
   "devDependencies": {

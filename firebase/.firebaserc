@@ -1,7 +1,7 @@
 {
   "projects": {
     "default": "kiira-health-dev",
-    "dev": "kiira-health-dev",
+    "dev": "kliit-health-dev",
     "prod": "kiira-health-app"
   },
   "targets": {},
