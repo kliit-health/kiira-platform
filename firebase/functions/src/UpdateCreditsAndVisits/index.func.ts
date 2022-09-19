@@ -36,7 +36,10 @@ export async function UpdateCreditsAndVisitsFrom(userID : string , appointmentID
         const visits = operation.visits;
         const credits = operation.appointmentType.credits;
 
+        //Add some kind of evaluation based on operation data here
         let addingValues : Boolean = false;
+
+
         let valuesSign : OperationSign = addingValues == true? 1 : -1;
 
         values.updatedVisits = visits * valuesSign;
