@@ -8,58 +8,49 @@ import * as getData from './getData';
 //Where is he update subscription function
 
 
-export = (userID : string , operationID : string ) => {
+export = async(userID : string , operationID : string ) => {
 
     //functions.https.onCall(async ({subscriptionInfo}, response) => {
 
-        //async
-        var user = getData.GetUser(userID);
 
-        //async
-        var action = getData.GetOperation(operationID);
+        const userAndOpData = await GetUserAndOperation(userID,operationID);
 
         //Extract relevent values from operation
-        var creditsToAdd : Number = 0;
-        var visitsToAdd : Number = 0;
+        const user = userAndOpData[0];
+        const operation = userAndOpData[1];
+        
 
+        const valuesToAdd = {
 
-
-
+            updatedVisits : 0,
+            updatedCredits : 0,
+        };
+        
         //Determine if the operation involves adding or subtracting
-        //if we are adding 
-        if(true) AddSubscriptionToUser(creditsToAdd,visitsToAdd);
+        ProcessValuesToAdd(operation,valuesToAdd);
 
-        //if we are cancelling  
-        else RemoveSubscriptionFromUser(creditsToAdd,visitsToAdd);
 
-        //
-        updateData.UpdateUser();
+        updateData.UpdateUser(user);
+}
+
+
+    const GetUserAndOperation = async(userID : string , operationID : string ) => {
+        //async
+        const user = getData.GetUser(userID);
+
+        //async
+        const action = getData.GetOperation(operationID)
+
+        const userOperationData = await Promise.all([user,action]);
+            return userOperationData;
+    }
+    
+    const ProcessValuesToAdd = (operation : any, values: UpdateValues) => {
+        
+    //return response.send(details).status(200)
+        
     }
 
-    
-    function Update (credits : Number,visits : Number,)  {
-        
-        //calculate the desired visitor number
-
-        
-        
-        //return response.send(details).status(200)
-        
-    }
-
-    function RemoveFromUser (credits : Number,visits : Number,) {
-
-        //calculate the desired visitor number
-
-        await updateData.UpdateOperation();
-
-      //  return response.send(details).status(200)
-
-    
-    
-    
-    
-    }
 
 
 
