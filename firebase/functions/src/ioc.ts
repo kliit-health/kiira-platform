@@ -1,7 +1,9 @@
 import {Logger} from "./logging";
-import {FunctionBuilder} from "firebase-functions";
+import functions = require("firebase-functions");
+
+type FirebaseFunctionModule = typeof functions
 
 export interface Context {
-  functions: FunctionBuilder,
+  functions: FirebaseFunctionModule,
   logger: Logger
 }
