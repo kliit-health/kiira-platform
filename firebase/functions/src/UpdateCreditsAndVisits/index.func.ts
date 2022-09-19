@@ -8,18 +8,14 @@ import * as getData from './getData';
 //Where is he update subscription function
 
 
-export = async(userID : string , operationID : string ) => {
+export async function UpdateCreditsAndVisitsFrom(userID : string , appointmentID : string ) {
 
     //functions.https.onCall(async ({subscriptionInfo}, response) => {
 
 
-        const userAndOpData = await GetUserAndOperation(userID,operationID);
-
         //Extract relevent values from operation
-        const user = userAndOpData[0];
-        const operation = userAndOpData[1];
+        const appointment = await getData.GetAppointment(appointmentID);
         
-
         const valuesToAdd = {
 
             updatedVisits : 0,
@@ -27,31 +23,27 @@ export = async(userID : string , operationID : string ) => {
         };
         
         //Determine if the operation involves adding or subtracting
-        ProcessValuesToAdd(operation,valuesToAdd);
+        ProcessValuesToAdd(appointment,valuesToAdd);
 
 
-        updateData.UpdateUser(user);
+        updateData.UpdateUserWithValues(userID,valuesToAdd);
 }
 
 
-    const GetUserAndOperation = async(userID : string , operationID : string ) => {
-        //async
-        const user = getData.GetUser(userID);
-
-        //async
-        const action = getData.GetOperation(operationID)
-
-        const userOperationData = await Promise.all([user,action]);
-            return userOperationData;
-    }
     
-    const ProcessValuesToAdd = (operation : any, values: UpdateValues) => {
+    function ProcessValuesToAdd (operation : any, values: UpdateValues){
+        
+        const visits = operation.visits;
+        const credits = operation.appointmentType.credits;
+
+        let addingValues : Boolean = false;
+        let valuesSign : OperationSign = addingValues == true? 1 : -1;
+
+        values.updatedVisits = visits * valuesSign;
+        values.updatedCredits = credits * valuesSign;
         
     //return response.send(details).status(200)
         
     }
-
-
-
 
 

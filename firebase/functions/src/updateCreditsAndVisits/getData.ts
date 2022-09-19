@@ -1,21 +1,23 @@
 import * as functions from 'firebase-functions';
 import {firestore} from "firebase-admin";
 
-export function GetUser(uid : string){
-                
+export async function GetUser(u_id : string){
+      
     return firestore
    .collection("users")
-   .where("calendarID", "==", uid.toString())
+   .where("uid", "==", u_id)
    .get();
          
 
  }
 
 
- export function GetOperation(oid : string){
+ export async function GetAppointment(a_id : string){
 
-    var op;
-    return op;
+  return firestore
+  .collection("appointments")
+  .where("id", "==", a_id)
+  .get();
 
 
 
