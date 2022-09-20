@@ -10,7 +10,7 @@ firebaseFunctions.https.onRequest(async (req: any, res: any) => {
         // visits = req.body.visits ? req.body.visits : 0,
       } = req.body;
       const { credits } = await firebaseFetch(
-        "appointmnetTypes",
+        "appointmentTypes",
         appointmentTypeID
       );
       const userData = await firebaseFetch("users", uid);
