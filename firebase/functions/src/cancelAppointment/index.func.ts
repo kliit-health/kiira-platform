@@ -5,23 +5,18 @@ module.exports = () =>
         id,
         uid,
         expert,
-        credits,
-        visits = req.body.visits ? req.body.visits : 0,
+        appointmentTypeID,
+        // visits = req.body.visits ? req.body.visits : 0,
       } = req.body;
-      const userDoc = admin.firestore().collection("users").doc(uid);
-      const resData = await userDoc.get();
-      let userData = resData.data();
-      let amount =
-        req.body.prepaidInfo && req.body.prepaidInfo.amount
-          ? req.body.prepaidInfo.amount
-          : 0;
-      let isPrePaid =
-        req.body.prepaidInfo && req.body.prepaidInfo.isPrePaid
-          ? req.body.prepaidInfo.isPrePaid
-          : false;
+      const { credits } = await firebaseFetch(
+        "appointmnetTypes",
+        appointmentTypeID
+      );
+      const userData = await firebaseFetch("users", uid);
       const document = admin.firestore().collection("appointments").doc(uid);
       const response = await document.get();
       let appointments = response.data();
+
       appointments.history = appointments.history.filter(
         (item: any) => item.id !== id
       );
@@ -39,7 +34,7 @@ module.exports = () =>
           visits:
             (userData.visits && userData.visits != "NaN"
               ? userData.visits
-              : 0) + (isPrePaid ? (visits > 0 ? visits : 0) : credits - amount),
+              : 0) + credits,
         });
 
       const expertDocument = admin

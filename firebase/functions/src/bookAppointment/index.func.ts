@@ -3,6 +3,7 @@ const moment = require("moment");
 const admin = require("firebase-admin");
 const appointmentCheckTime = require("../bookAppointment/appointmentCheckTime");
 const appointmentMake = require("../bookAppointment/appointmentMake");
+const firebaseFetch = require("../utils/firebaseSingleFetch");
 
 module.exports = () =>
   functions.https.onRequest(async (req: any, res: any) => {
@@ -27,9 +28,6 @@ module.exports = () =>
       const token = await admin.auth().verifyIdToken(idToken);
       if (token) {
         const {
-          firstName,
-          lastName,
-          email,
           calendarID,
           time,
           reason,
@@ -37,17 +35,13 @@ module.exports = () =>
           uid,
           expert,
           appointmentType,
-        } = req.body;    
-       //notes saved under the user in acuity appointments
-        let noPrescription = "I do not need a prescription,";
-        let yesPrescription = "I need a prescription,";
-        let reasonForVisit = `and would like to talk about ${reason}`;
+        } = req.body;
 
-        let notes = prescription
-          ? `${yesPrescription} ${reasonForVisit}`
-          : `${noPrescription} ${reasonForVisit}`;
         const { appointmentTypeID } = appointmentType;
-
+        const { firstName, lastName, email } = await firebaseFetch(
+          "users",
+          uid
+        );
         var obj = {
           data: {
             firstName,
@@ -57,7 +51,6 @@ module.exports = () =>
             email,
             reason,
             prescription,
-            notes,
             appointmentTypeID: appointmentTypeID,
           },
         };

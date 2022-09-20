@@ -11,12 +11,12 @@ const acuity = Acuity.basic({
 export default module.exports = (props: any) => {
   return new Promise((resolve, reject) =>
     (async function () {
-      const { calendarID, time } = props.data;
+      const { calendarID, time, appointmentTypeID} = props.data;
       try {
         var options = {
           method: "POST",
           body: {
-            appointmentTypeID: 16299344,
+            appointmentTypeID,
             datetime: time,
             calendarID: calendarID,
           },
