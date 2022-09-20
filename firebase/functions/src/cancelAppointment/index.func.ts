@@ -1,5 +1,6 @@
+const firebaseFunctions = require("firebase-functions");
 module.exports = () =>
-  functions.https.onRequest(async (req: any, res: any) => {
+firebaseFunctions.https.onRequest(async (req: any, res: any) => {
     try {
       const {
         id,
