@@ -1,52 +1,61 @@
 
-//import * as functions from 'firebase-functions';
 import * as updateData from './updateData';
 import * as getData from './getData';
+import { Context } from '../ioc';
 
 
 //Where is the update user function
 //Where is he update subscription function
 
+module.exports = (context : Context) => {
+    
+    return context.functions.https.onRequest(async (req,res) => {
 
-export async function UpdateCreditsAndVisitsFrom(userID : string , appointmentID : string ) {
+        const {
+            userId,
+            appointmentId,
+            operationId
+        } = req.body;
 
-    //functions.https.onCall(async ({subscriptionInfo}, response) => {
+        await processCreditsAndVisits(userId,appointmentId,operationId);
+        res.sendStatus(200);
+    })}
 
+
+async function processCreditsAndVisits(userId: string, appointmentId: string, operationId: string) {
+        // {
 
         //Extract relevent values from operation
-        const appointment = await getData.GetAppointment(appointmentID);
+        //const appointment = await getData.getAppointment(appointmentId);
         
-        const valuesToAdd = {
+        
+        //console.log(appointment.docs[0].data());
+        const userVal = await getData.getUserValues(userId);
+        const appointmentVal = await getData.getAppointmentValues(appointmentId);
+        
 
-            updatedVisits : 0,
-            updatedCredits : 0,
-        };
-        
+
         //Determine if the operation involves adding or subtracting
-        ProcessValuesToAdd(appointment,valuesToAdd);
+        const valuesToAdd = await ProcessValuesToAdd(userVal,appointmentVal ,operationId);
 
+        console.log("Appointment visits are now " + valuesToAdd.updatedVisits);
 
-        updateData.UpdateUserWithValues(userID,valuesToAdd);
-}
-
-
-    
-    function ProcessValuesToAdd (operation : any, values: UpdateValues){
-        
-        const visits = operation.visits;
-        const credits = operation.appointmentType.credits;
-
-        //Add some kind of evaluation based on operation data here
-        let addingValues : Boolean = false;
-
-
-        let valuesSign : OperationSign = addingValues == true? 1 : -1;
-
-        values.updatedVisits = visits * valuesSign;
-        values.updatedCredits = credits * valuesSign;
-        
-    //return response.send(details).status(200)
-        
+        await updateData.setUser(userId, valuesToAdd);
+ 
     }
+
+
+    async function ProcessValuesToAdd (userValues : UpdateValues, appointmentValues : UpdateValues, operationId : string) : Promise<UpdateValues>{
+        
+        let valuesSign = await getData.getOperationFromId(operationId);
+        console.log(`adding user credit ${userValues.updatedCredits} to appoinmet credits ${appointmentValues.updatedCredits*valuesSign}`);
+        return {
+
+            updatedCredits : userValues.updatedCredits + appointmentValues.updatedCredits * valuesSign,
+            updatedVisits :  userValues.updatedVisits + appointmentValues.updatedVisits * valuesSign
+
+        };
+    }
+
 
 

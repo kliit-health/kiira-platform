@@ -1,16 +1,21 @@
-import * as getData from './getData';
+import {firestore} from "firebase-admin";
 
-export async function UpdateUserWithValues (uid : string, values : UpdateValues) {
+export async function setUser(u_id : string, values : UpdateValues){
+      
+    const visits = values.updatedVisits;
+    const credits = values.updatedCredits;
 
-        const user = await getData.GetUser(uid);
-        UpdateUser(user);
-
-        
-    }
-
-
-    async function UpdateUser(user : any){
-
-
-
-    }
+    return firestore()
+   .collection("users")
+   .doc(u_id)
+   .set(
+    {
+      visits,
+      credits:{
+        MentalHealth : credits
+      }
+    },
+    {merge : true}
+   )     
+  
+  }

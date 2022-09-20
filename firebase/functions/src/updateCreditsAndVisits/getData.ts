@@ -1,24 +1,49 @@
-import * as functions from 'firebase-functions';
 import {firestore} from "firebase-admin";
 
-export async function GetUser(u_id : string){
-      
-    return firestore
+
+ export async function getUserValues(u_id : string) : Promise<UpdateValues>{
+  
+  const user =
+  (await firestore()
    .collection("users")
-   .where("uid", "==", u_id)
-   .get();
-         
+   .doc(u_id)
+  .get()).data();
+
+    return {
+
+      
+      updatedCredits : user?.credits["MentalHealth"] ?? 0,
+      updatedVisits : user?.visits ?? 0,
+    };  
 
  }
 
+export async function getAppointmentValues(a_id : string) : Promise<UpdateValues>{
 
- export async function GetAppointment(a_id : string){
-
-  return firestore
-  .collection("appointments")
-  .where("id", "==", a_id)
+  
+  const appointmentDoc = await firestore()
+  .collection("appointmentTypes")
+  .doc(a_id)
   .get();
 
+    //Error handle if there was no appointment with valid id. Meaning .data is undefined
+    const data = appointmentDoc.data() //?? { credits : 1, visits : 1 };
 
+    console.log("data " + data);
+    console.log("credits : " + data?.credits);
+
+    return {
+
+    updatedCredits : data?.credits,
+    updatedVisits : data?.credits
+      
+    };
+
+}
+
+export async function getOperationFromId(o_id : string) : Promise<OperationSign>{
+
+
+  return 1;
 
 }
