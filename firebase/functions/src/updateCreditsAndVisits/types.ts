@@ -1,10 +1,22 @@
 
 
-interface UpdateValues{
+export interface UpdateValues{
 
     updatedVisits : number;
     updatedCredits : number;
 
 }
 
-type OperationSign = 1 | -1;
+export enum OperationTypes{
+
+    Credit = "Credit",
+    Debit = "Debit"
+
+}
+
+export enum AppointmentTypes {
+
+    Appointment = "Appointment",
+    None = ""
+
+}

@@ -1,11 +1,9 @@
 
 import * as updateData from './updateData';
 import * as getData from './getData';
+import * as types from './types';
 import { Context } from '../ioc';
 
-
-//Where is the update user function
-//Where is he update subscription function
 
 module.exports = (context : Context) => {
     
@@ -13,46 +11,48 @@ module.exports = (context : Context) => {
 
         const {
             userId,
-            appointmentId,
-            operationId
+            transactionInfo:{
+                type:aType,
+                id:aId,
+                op:op
+            }
         } = req.body;
 
-        await processCreditsAndVisits(userId,appointmentId,operationId);
+        await processCreditsAndVisits(userId,aType,aId,op);
         res.sendStatus(200);
     })}
 
 
-async function processCreditsAndVisits(userId: string, appointmentId: string, operationId: string) {
-        // {
+async function processCreditsAndVisits(userId: string, appTypeRaw : string, appIdRaw: string, operationIdRaw: string) {        
 
-        //Extract relevent values from operation
-        //const appointment = await getData.getAppointment(appointmentId);
+        const userVal = await getData.getUserValues(userId);  
+
+        const appointmentType : types.AppointmentTypes = types.AppointmentTypes[appTypeRaw as keyof typeof types.AppointmentTypes];
         
-        
-        //console.log(appointment.docs[0].data());
-        const userVal = await getData.getUserValues(userId);
-        const appointmentVal = await getData.getAppointmentValues(appointmentId);
-        
+        const appointmentVal = await getData.GetAppointmentValuesFromType(appointmentType, appIdRaw);   
 
 
         //Determine if the operation involves adding or subtracting
-        const valuesToAdd = await ProcessValuesToAdd(userVal,appointmentVal ,operationId);
-
-        console.log("Appointment visits are now " + valuesToAdd.updatedVisits);
+        const valuesToAdd = await ProcessValuesToAdd(userVal, appointmentVal, operationIdRaw);
 
         await updateData.setUser(userId, valuesToAdd);
  
     }
 
-
-    async function ProcessValuesToAdd (userValues : UpdateValues, appointmentValues : UpdateValues, operationId : string) : Promise<UpdateValues>{
+    async function ProcessValuesToAdd (userValues : types.UpdateValues, appointmentValues : types.UpdateValues, operationId : string) : Promise<types.UpdateValues>{
         
         let valuesSign = await getData.getOperationFromId(operationId);
-        console.log(`adding user credit ${userValues.updatedCredits} to appoinmet credits ${appointmentValues.updatedCredits*valuesSign}`);
+        //console.log(`adding user credit ${userValues.updatedCredits} to appoinmet credits ${appointmentValues.updatedCredits*valuesSign}`);
+        let finalCredits = userValues.updatedCredits + appointmentValues.updatedCredits * valuesSign;
+        if(finalCredits < 0){finalCredits = 0;}
+
+        let finalVisits = userValues.updatedVisits + appointmentValues.updatedVisits * valuesSign;
+        if(finalVisits < 0){finalVisits = 0;}
+
         return {
 
-            updatedCredits : userValues.updatedCredits + appointmentValues.updatedCredits * valuesSign,
-            updatedVisits :  userValues.updatedVisits + appointmentValues.updatedVisits * valuesSign
+            updatedCredits : finalCredits,
+            updatedVisits :  finalVisits
 
         };
     }

@@ -1,7 +1,8 @@
+import * as types from './types';
 import {firestore} from "firebase-admin";
 
 
- export async function getUserValues(u_id : string) : Promise<UpdateValues>{
+ export async function getUserValues(u_id : string) : Promise<types.UpdateValues>{
   
   const user =
   (await firestore()
@@ -18,7 +19,36 @@ import {firestore} from "firebase-admin";
 
  }
 
-export async function getAppointmentValues(a_id : string) : Promise<UpdateValues>{
+ export async function GetAppointmentValuesFromType(aType: types.AppointmentTypes, a_id: string) {
+
+  let appointmentVal: types.UpdateValues;
+
+  switch (aType) {
+
+      case types.AppointmentTypes.Appointment:
+          {
+
+              appointmentVal = await getAppointmentValues(a_id);
+          }
+          break;
+
+      default: {
+
+          appointmentVal = {
+              updatedCredits: 0,
+              updatedVisits: 0
+          };
+
+          console.log("Invalid transactionType given!");
+
+      }
+          break;
+
+  }
+  return appointmentVal;
+}
+
+export async function getAppointmentValues(a_id : string) : Promise<types.UpdateValues>{
 
   
   const appointmentDoc = await firestore()
@@ -41,9 +71,32 @@ export async function getAppointmentValues(a_id : string) : Promise<UpdateValues
 
 }
 
-export async function getOperationFromId(o_id : string) : Promise<OperationSign>{
+export async function getOperationFromId(o_id : string) : Promise<number>{
 
+  const opType : types.OperationTypes = types.OperationTypes[o_id as keyof typeof types.OperationTypes];
 
-  return 1;
+  switch (opType) {
+
+      case types.OperationTypes.Credit:
+          {
+              return 1;
+          }
+          break;
+        
+      case types.OperationTypes.Debit:
+            {
+                return -1;
+            }
+            break;
+
+      default: {
+
+          console.log("Invalid transactionType given!");
+          return 1;
+
+      }
+      break;
+
+  }
 
 }
