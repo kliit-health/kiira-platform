@@ -29,7 +29,7 @@ async function processCreditsAndVisits(userId: string, appTypeRaw : string, appI
 
         const appointmentType : types.AppointmentTypes = types.AppointmentTypes[appTypeRaw as keyof typeof types.AppointmentTypes];
         
-        const appointmentVal = await getData.GetAppointmentValuesFromType(appointmentType, appIdRaw);   
+        const appointmentVal = await getData.getAppointmentValuesFromType(appointmentType, appIdRaw);   
 
 
         //Determine if the operation involves adding or subtracting

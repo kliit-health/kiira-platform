@@ -1,8 +1,8 @@
-import * as types from './types';
+import * as updateTypes from './types';
 import {firestore} from "firebase-admin";
 
 
- export async function getUserValues(u_id : string) : Promise<types.UpdateValues>{
+ export async function getUserValues(u_id : string) : Promise<updateTypes.UpdateValues>{
   
   const user =
   (await firestore()
@@ -19,13 +19,13 @@ import {firestore} from "firebase-admin";
 
  }
 
- export async function GetAppointmentValuesFromType(aType: types.AppointmentTypes, a_id: string) {
+ export async function getAppointmentValuesFromType(aType: updateTypes.AppointmentTypes, a_id: string) {
 
-  let appointmentVal: types.UpdateValues;
+  let appointmentVal: updateTypes.UpdateValues;
 
   switch (aType) {
 
-      case types.AppointmentTypes.Appointment:
+      case updateTypes.AppointmentTypes.Appointment:
           {
 
               appointmentVal = await getAppointmentValues(a_id);
@@ -48,7 +48,7 @@ import {firestore} from "firebase-admin";
   return appointmentVal;
 }
 
-export async function getAppointmentValues(a_id : string) : Promise<types.UpdateValues>{
+export async function getAppointmentValues(a_id : string) : Promise<updateTypes.UpdateValues>{
 
   
   const appointmentDoc = await firestore()
@@ -73,17 +73,17 @@ export async function getAppointmentValues(a_id : string) : Promise<types.Update
 
 export async function getOperationFromId(o_id : string) : Promise<number>{
 
-  const opType : types.OperationTypes = types.OperationTypes[o_id as keyof typeof types.OperationTypes];
+  const opType : updateTypes.OperationTypes = updateTypes.OperationTypes[o_id as keyof typeof updateTypes.OperationTypes];
 
   switch (opType) {
 
-      case types.OperationTypes.Credit:
+      case updateTypes.OperationTypes.Credit:
           {
               return 1;
           }
           break;
         
-      case types.OperationTypes.Debit:
+      case updateTypes.OperationTypes.Debit:
             {
                 return -1;
             }
