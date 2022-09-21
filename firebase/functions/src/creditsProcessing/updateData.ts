@@ -1,7 +1,10 @@
+import * as types from './types';
 import {firestore} from "firebase-admin";
 
-export async function setUser(u_id : string, values : UpdateValues){
+
+export async function setUser(u_id : string, values : types.UpdateValues){
       
+
     const visits = values.updatedVisits;
     const credits = values.updatedCredits;
 

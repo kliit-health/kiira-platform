@@ -7,7 +7,7 @@ import { Context } from '../ioc';
 
 module.exports = (context : Context) => {
     
-    return context.functions.https.onRequest(async (req,res) => {
+    return context.functions.https.onCall(async (req,res) => {
 
         const {
             userId,
@@ -19,7 +19,7 @@ module.exports = (context : Context) => {
         } = req.body;
 
         await processCreditsAndVisits(userId,aType,aId,op);
-        res.sendStatus(200);
+        //res.sendStatus(200);
     })}
 
 
@@ -33,13 +33,13 @@ async function processCreditsAndVisits(userId: string, appTypeRaw : string, appI
 
 
         //Determine if the operation involves adding or subtracting
-        const valuesToAdd = await ProcessValuesToAdd(userVal, appointmentVal, operationIdRaw);
+        const valuesToAdd = await processValuesToAdd(userVal, appointmentVal, operationIdRaw);
 
         await updateData.setUser(userId, valuesToAdd);
  
     }
 
-    async function ProcessValuesToAdd (userValues : types.UpdateValues, appointmentValues : types.UpdateValues, operationId : string) : Promise<types.UpdateValues>{
+    async function processValuesToAdd (userValues : types.UpdateValues, appointmentValues : types.UpdateValues, operationId : string) : Promise<types.UpdateValues>{
         
         let valuesSign = await getData.getOperationFromId(operationId);
         //console.log(`adding user credit ${userValues.updatedCredits} to appoinmet credits ${appointmentValues.updatedCredits*valuesSign}`);
