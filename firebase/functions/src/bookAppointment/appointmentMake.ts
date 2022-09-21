@@ -10,11 +10,17 @@ const acuity = Acuity.basic({
 
 export default module.exports = (props: any) => {
   return new Promise((resolve, reject) =>
-    (async function () {
-      const { firstName, lastName, email, time, calendarID, appointmentTypeID } =
-        props.data;
+    (async function() {
+      const {
+        firstName,
+        lastName,
+        email,
+        time,
+        calendarID,
+        appointmentTypeID,
+      } = props.data;
       try {
-        var options = {
+        const options = {
           method: "POST",
           body: {
             appointmentTypeID,

@@ -1,59 +1,78 @@
 const firebaseFunctions = require("firebase-functions");
+const firebaseAdmin = require("firebase-admin");
+const firebaseSingleFetch = require("../utils/firebaseSingleFetch");
+const appointmentCancel = require("../cancelAppointment/appointmentCancel");
+
 module.exports = () =>
-firebaseFunctions.https.onRequest(async (req: any, res: any) => {
+  firebaseFunctions.https.onRequest(async (req: any, res: any) => {
+    let idToken;
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer ")
+    ) {
+      idToken = req.headers.authorization.split("Bearer ")[1];
+    } else {
+      res.status(403).send("Unauthorized");
+      return;
+    }
     try {
-      const {
-        id,
-        uid,
-        expert,
-        appointmentTypeID,
-        // visits = req.body.visits ? req.body.visits : 0,
-      } = req.body;
-      const { credits } = await firebaseFetch(
-        "appointmentTypes",
-        appointmentTypeID
-      );
-      const userData = await firebaseFetch("users", uid);
-      const document = admin.firestore().collection("appointments").doc(uid);
-      const response = await document.get();
-      let appointments = response.data();
+      const token = await firebaseAdmin.auth().verifyIdToken(idToken);
+      if (token) {
+        const { id, uid, expert } = req.body;
+        const obj = {
+          data: {
+            id: id,
+          },
+        };
 
-      appointments.history = appointments.history.filter(
-        (item: any) => item.id !== id
-      );
+        return await appointmentCancel(obj)
+          .then((res: any) => {
+            return res;
+          })
+          .then(async (res: any) => {
+            if (res.body.error) {
+              return res.body;
+            }
 
-      await document.set(
-        { history: [...(appointments.history || [])] },
-        { merge: true }
-      );
+            const document = firebaseAdmin
+              .firestore()
+              .collection("appointments")
+              .doc(uid);
+            const response = await document.get();
+            let appointments = response.data();
+            appointments.history = appointments.history.filter(
+              (item: any) => item.id !== id
+            );
 
-      await admin
-        .firestore()
-        .collection("users")
-        .doc(uid)
-        .update({
-          visits:
-            (userData.visits && userData.visits != "NaN"
-              ? userData.visits
-              : 0) + credits,
-        });
+            await document.set(
+              { history: [...(appointments.history || [])] },
+              { merge: true }
+            );
 
-      const expertDocument = admin
-        .firestore()
-        .collection("appointments")
-        .doc(expert.uid);
-      const expertResponse = await expertDocument.get();
-      let expertAppointments = expertResponse.data();
-      let filtered = expertAppointments.history[uid].filter((item: any) => {
-        return item.id !== id ? item : false;
-      });
+            const expertDocument = firebaseAdmin
+              .firestore()
+              .collection("appointments")
+              .doc(expert.uid);
+            const expertResponse = await expertDocument.get();
+            let expertAppointments = expertResponse.data();
+            let filtered = expertAppointments.history[uid].filter(
+              (item: any) => {
+                return item.id !== id ? item : false;
+              }
+            );
 
-      await expertDocument.set(
-        { history: { [uid]: [...(filtered || [])] } },
-        { merge: true }
-      );
+            await expertDocument.set(
+              { history: { [uid]: [...(filtered || [])] } },
+              { merge: true }
+            );
+          })
+          .catch((error: any) => {
+            console.error(error);
+          });
+      }
+      return res.sendStatus(200);
     } catch (error) {
-      console.log("Cancel Error", error);
-      return error;
+      console.error(error);
+      return { availible: false };
     }
   });

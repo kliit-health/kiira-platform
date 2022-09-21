@@ -7,13 +7,6 @@ const firebaseFetch = require("../utils/firebaseSingleFetch");
 
 module.exports = () =>
   functions.https.onRequest(async (req: any, res: any) => {
-    if (
-      !req.headers.authorization ||
-      !req.headers.authorization.startsWith("Bearer ")
-    ) {
-      res.status(403).send("Unauthorized");
-      return;
-    }
     let idToken;
     if (
       req.headers.authorization &&
@@ -37,12 +30,13 @@ module.exports = () =>
           appointmentType,
         } = req.body;
 
-        const { appointmentTypeID } = appointmentType;
-        const { firstName, lastName, email } = await firebaseFetch(
+        const {appointmentTypeID} = appointmentType;
+        const {profileInfo} = await firebaseFetch(
           "users",
           uid
         );
-        var obj = {
+        const {firstName,lastName,email} = profileInfo
+        const obj = {
           data: {
             firstName,
             lastName,
@@ -55,12 +49,15 @@ module.exports = () =>
           },
         };
 
-        let response;
+         let response;
         const checkTime = await appointmentCheckTime(obj);
         if (checkTime.valid) {
           const makeAppointment = await appointmentMake(obj);
           response = {
             ...req.body,
+            firstName,
+            lastName,
+            email,
             createdAt: moment().unix(),
             expert,
             id: makeAppointment.body.id,
@@ -73,15 +70,15 @@ module.exports = () =>
           const prev = await document.get();
           if (prev.exists) {
             await document.set(
-              { history: [...prev.data().history, response] },
-              { merge: true }
+              {history: [...prev.data().history, response]},
+              {merge: true}
             );
           } else {
             await admin
               .firestore()
               .collection("appointments")
               .doc(uid)
-              .set({ history: [response] });
+              .set({history: [response]});
           }
 
           const expertDocument = admin
@@ -96,7 +93,7 @@ module.exports = () =>
                   [uid]: [...(expertPrev.data().history[uid] || []), response],
                 },
               },
-              { merge: true }
+              {merge: true}
             );
           } else {
             await admin
@@ -104,14 +101,14 @@ module.exports = () =>
               .collection("appointments")
               .doc(expert.uid)
               .set({
-                history: { [uid]: [response] },
+                history: {[uid]: [response]},
               });
           }
-        }
+         }
         return res.sendStatus(200);
       }
     } catch (error) {
       console.error(error);
-      return { availible: false };
+      return {availible: false};
     }
   });
