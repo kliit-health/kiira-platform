@@ -32,7 +32,7 @@ describe("Firestore Tests", () => {
 
   it("get user mental health credits", async () => {
     const userCredits: Maybe<UserCredits> = await firestoreUserLookup(firestore).credits(userId);
-    assert.equal(userCredits.unsafeCoerce().credits![CreditType.MentalHealth], 1);
+    assert.equal(userCredits.unsafeCoerce().credits![CreditType.TherapySession], 1);
   });
 
   it("get user service cost health credits", async () => {

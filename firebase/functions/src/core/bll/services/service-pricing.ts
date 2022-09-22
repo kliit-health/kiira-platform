@@ -10,7 +10,6 @@ export enum CreditType {
   HealthCheck = "HealthCheck",
   VideoVisit = "VideoVisit",
   TherapySession = "TherapySession",
-  MentalHealth = "MentalHealth"
 }
 
 type Credits = {
@@ -25,7 +24,7 @@ export type ServiceCost = {
 
 const dollarsPerVisit = 60;
 
-function hasServiceTypeCredits(userCredits: UserCredits, creditType: CreditType) {
+function hasCreditForRequiredServiceCreditType(userCredits: UserCredits, creditType: CreditType) {
   if (creditType == null) return false;
   if (userCredits.credits == null) return false;
 
@@ -36,10 +35,9 @@ function hasServiceTypeCredits(userCredits: UserCredits, creditType: CreditType)
 
 export function servicePricing(
   userCredits: UserCredits,
-  serviceCost: ServiceCost
+  serviceCost: ServiceCost,
 ): PricingInfo {
-  const type = serviceCost.type;
-  if (hasServiceTypeCredits(userCredits, type)) {
+  if (hasCreditForRequiredServiceCreditType(userCredits, serviceCost.type)) {
     return {dollars: 0};
   }
 

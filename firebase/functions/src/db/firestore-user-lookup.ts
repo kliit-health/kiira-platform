@@ -24,5 +24,5 @@ export function firestoreUserLookup(db: FirestoreDb): UserLookup {
 
 const codec = Interface({
   visits: Integer,
-  credits: optional(Interface({[CreditType.MentalHealth]: Integer})),
+  credits: optional(Interface({[CreditType.TherapySession]: Integer})),
 });

@@ -4,5 +4,5 @@ import {MaybeAsync} from "purify-ts";
 export type UserId = string
 
 export interface UserLookup {
-  credits(id: UserId): MaybeAsync<UserCredits>
+  credits(id: UserId): MaybeAsync<UserCredits>;
 }

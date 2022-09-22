@@ -4,5 +4,5 @@ import {MaybeAsync} from "purify-ts";
 export type ServiceId = string
 
 export interface ServiceLookup {
-  cost(id: ServiceId): MaybeAsync<ServiceCost>
+  cost(id: ServiceId): MaybeAsync<ServiceCost>;
 }
