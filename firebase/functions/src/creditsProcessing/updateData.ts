@@ -1,24 +1,21 @@
-import * as types from './types';
+import * as types from "./types";
 import {firestore} from "firebase-admin";
 
 
-export async function setUser(u_id : string, values : types.UpdateValues){
-      
-
+export async function setUser(uId : string, values : types.UpdateValues) {
     const visits = values.updatedVisits;
     const credits = values.updatedCredits;
 
     return firestore()
    .collection("users")
-   .doc(u_id)
+   .doc(uId)
    .set(
     {
       visits,
-      credits:{
-        MentalHealth : credits
-      }
+      credits: {
+        MentalHealth: credits,
+      },
     },
-    {merge : true}
-   )     
-  
+    {merge: true}
+   );
   }
