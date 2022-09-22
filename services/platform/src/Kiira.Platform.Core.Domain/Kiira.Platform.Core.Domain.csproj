@@ -6,4 +6,19 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\packages\dotnet\src\Kiira.Core.Domain\Kiira.Core.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Members\MemberEmail.cs" />
+      <Compile Remove="Members\MemberPhone.cs" />
+      <Compile Remove="Members\Membership.cs" />
+      <Compile Remove="Members\MembershipGroup.cs" />
+      <Compile Remove="Members\MembershipOwner.cs" />
+      <Compile Remove="Members\MembershipOwnerTypes.cs" />
+      <Compile Remove="Members\MembershipStatus.cs" />
+      <Compile Remove="Members\Organization.cs" />
+    </ItemGroup>
+
 </Project>
