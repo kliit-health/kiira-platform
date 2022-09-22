@@ -1,61 +1,59 @@
+import * as updateData from "./updateData";
+import * as getData from "./getData";
+import * as types from "./types";
+import {Context} from "../ioc";
 
-import * as updateData from './updateData';
-import * as getData from './getData';
-import * as types from './types';
-import { Context } from '../ioc';
 
-
-module.exports = (context : Context) => {
-    
-    return context.functions.https.onCall(async (req,res) => {
-
+module.exports.processCredits = (context : Context) => {
+    context.functions.https.onCall(async (data, context) =>{
         const {
             userId,
-            transactionInfo:{
-                type:aType,
-                id:aId,
-                op:op
-            }
-        } = req.body;
+            transactionInfo: {
+                type: aType,
+                id: aId,
+                op: oId,
+            },
+        } = data;
 
-        await processCreditsAndVisits(userId,aType,aId,op);
-        //res.sendStatus(200);
-    })}
+        processCreditsAndVisits(userId, aType, aId, oId);
+        return "hello";
+    }
+);
+};
 
-
-async function processCreditsAndVisits(userId: string, appTypeRaw : string, appIdRaw: string, operationIdRaw: string) {        
-
-        const userVal = await getData.getUserValues(userId);  
+    export async function processCreditsAndVisits(userId: string, appTypeRaw : string, appIdRaw: string, operationIdRaw: string) {
+        const userVal = await getData.getUserValues(userId);
 
         const appointmentType : types.AppointmentTypes = types.AppointmentTypes[appTypeRaw as keyof typeof types.AppointmentTypes];
-        
-        const appointmentVal = await getData.GetAppointmentValuesFromType(appointmentType, appIdRaw);   
+
+        const appointmentVal = await getData.getAppointmentValuesFromType(appointmentType, appIdRaw);
 
 
-        //Determine if the operation involves adding or subtracting
+        // Determine if the operation involves adding or subtracting
         const valuesToAdd = await processValuesToAdd(userVal, appointmentVal, operationIdRaw);
 
         await updateData.setUser(userId, valuesToAdd);
- 
     }
 
-    async function processValuesToAdd (userValues : types.UpdateValues, appointmentValues : types.UpdateValues, operationId : string) : Promise<types.UpdateValues>{
-        
-        let valuesSign = await getData.getOperationFromId(operationId);
-        //console.log(`adding user credit ${userValues.updatedCredits} to appoinmet credits ${appointmentValues.updatedCredits*valuesSign}`);
+    async function processValuesToAdd(userValues : types.UpdateValues, appointmentValues : types.UpdateValues, operationId : string) : Promise<types.UpdateValues> {
+        const valuesSign = await getData.getOperationFromId(operationId);
+        // console.log(`adding user credit ${userValues.updatedCredits} to appoinmet credits ${appointmentValues.updatedCredits*valuesSign}`);
         let finalCredits = userValues.updatedCredits + appointmentValues.updatedCredits * valuesSign;
-        if(finalCredits < 0){finalCredits = 0;}
+        if (finalCredits < 0) {
+finalCredits = 0;
+}
 
         let finalVisits = userValues.updatedVisits + appointmentValues.updatedVisits * valuesSign;
-        if(finalVisits < 0){finalVisits = 0;}
+        if (finalVisits < 0) {
+finalVisits = 0;
+}
 
         return {
 
-            updatedCredits : finalCredits,
-            updatedVisits :  finalVisits
+            updatedCredits: finalCredits,
+            updatedVisits: finalVisits,
 
         };
     }
-
 
 
