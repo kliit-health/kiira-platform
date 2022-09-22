@@ -1,9 +1,5 @@
-
-import * as updateData from './updateData';
-import * as getData from './getData';
-import * as types from './types';
 import { Context } from '../ioc';
-import * as creditsProcessing from 'firebase/app';
+import * as creditsProcessing from '../creditsProcessing';
 
 
 

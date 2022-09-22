@@ -1,11 +1,11 @@
-import * as updateData from './updateData';
+//import * as updateData from './updateData';
 import { Context } from '../ioc';
 
 
 module.exports = (context : Context) => {
     
     return context.functions.https.onRequest(async (req,res) => {
-
+/*
         const {
             userId,
             creditInfo:{
@@ -14,7 +14,7 @@ module.exports = (context : Context) => {
             }
         } = req.body;
 
-        await updateData.setUser(userId,{creditValue,visitValue});
+        await updateData.setUser(userId,{creditValue,visitValue});*/
         res.sendStatus(200);
     })
 }
