@@ -1,22 +1,20 @@
+export interface UpdateValues {
 
-
-export interface UpdateValues{
-
-    updatedVisits : number;
-    updatedCredits : number;
+  updatedVisits: number;
+  updatedCredits: number;
 
 }
 
-export enum OperationTypes{
+export enum OperationTypes {
 
-    Credit = "Credit",
-    Debit = "Debit"
+  Credit = "Credit",
+  Debit = "Debit"
 
 }
 
 export enum AppointmentTypes {
 
-    Appointment = "Appointment",
-    None = ""
+  Appointment = "Appointment",
+  None = ""
 
 }

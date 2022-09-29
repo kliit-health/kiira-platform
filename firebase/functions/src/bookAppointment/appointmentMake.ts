@@ -1,5 +1,6 @@
 import functions = require("firebase-functions");
 import Acuity = require("acuityscheduling");
+
 const userId = functions.config().acuity.userid;
 const apiKey = functions.config().acuity.apikey;
 
