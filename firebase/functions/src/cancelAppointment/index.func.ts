@@ -1,7 +1,40 @@
-const firebaseFunctions = require("firebase-functions");
-const firebaseAdmin = require("firebase-admin");
-const firebaseSingleFetch = require("../utils/firebaseSingleFetch");
-const appointmentCancel = require("../cancelAppointment/appointmentCancel");
+import firebaseFunctions = require("firebase-functions");
+import firebaseAdmin = require("firebase-admin");
+import {acuityAppointmentCancel} from "./appointmentCancel";
+
+function firebaseUserAppointments(uid: string): FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> {
+  return firebaseAdmin
+    .firestore()
+    .collection("appointments")
+    .doc(uid);
+}
+
+function removeAppointmentFromHistory(appointments: FirebaseFirestore.DocumentData, id: any): any {
+  return appointments.history.filter(
+    (item: any) => item.id !== id,
+  );
+}
+
+function firebaseUpdateAppointments(document: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, appointments: FirebaseFirestore.DocumentData): Promise<FirebaseFirestore.WriteResult> {
+  return document.set(
+    {history: [...(appointments.history || [])]},
+    {merge: true},
+  );
+}
+
+function getExpertAppointments(expert: any): FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> {
+  return firebaseAdmin
+    .firestore()
+    .collection("appointments")
+    .doc(expert.uid);
+}
+
+function firebaseUpdateExpertAppointments(expertDocument: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, uid: string, filtered: any): Promise<FirebaseFirestore.WriteResult> {
+  return expertDocument.set(
+    {history: {[uid]: [...(filtered || [])]}},
+    {merge: true},
+  );
+}
 
 module.exports = () =>
   firebaseFunctions.https.onRequest(async (req: any, res: any) => {
@@ -18,14 +51,11 @@ module.exports = () =>
     try {
       const token = await firebaseAdmin.auth().verifyIdToken(idToken);
       if (token) {
-        const { id, uid, expert } = req.body;
-        const obj = {
-          data: {
-            id: id,
-          },
-        };
+        const {id, expert} = req.body;
+        const uid: string = token.uid;
+        const obj = {data: {id}};
 
-        return await appointmentCancel(obj)
+        return await acuityAppointmentCancel(obj)
           .then((res: any) => {
             return res;
           })
@@ -34,37 +64,24 @@ module.exports = () =>
               return res.body;
             }
 
-            const document = firebaseAdmin
-              .firestore()
-              .collection("appointments")
-              .doc(uid);
+            const document = firebaseUserAppointments(uid);
             const response = await document.get();
-            let appointments = response.data();
-            appointments.history = appointments.history.filter(
-              (item: any) => item.id !== id
-            );
+            const appointments = response.data();
+            if (appointments) {
+              appointments.history = removeAppointmentFromHistory(appointments, id);
+              await firebaseUpdateAppointments(document, appointments);
+            }
 
-            await document.set(
-              { history: [...(appointments.history || [])] },
-              { merge: true }
-            );
-
-            const expertDocument = firebaseAdmin
-              .firestore()
-              .collection("appointments")
-              .doc(expert.uid);
+            const expertDocument = getExpertAppointments(expert);
             const expertResponse = await expertDocument.get();
-            let expertAppointments = expertResponse.data();
-            let filtered = expertAppointments.history[uid].filter(
+            const expertAppointments = expertResponse.data() ?? {};
+            const filtered = expertAppointments.history[uid].filter(
               (item: any) => {
                 return item.id !== id ? item : false;
-              }
+              },
             );
 
-            await expertDocument.set(
-              { history: { [uid]: [...(filtered || [])] } },
-              { merge: true }
-            );
+            await firebaseUpdateExpertAppointments(expertDocument, uid, filtered);
           })
           .catch((error: any) => {
             console.error(error);
@@ -73,6 +90,6 @@ module.exports = () =>
       return res.sendStatus(200);
     } catch (error) {
       console.error(error);
-      return { availible: false };
+      return {available: false};
     }
   });
