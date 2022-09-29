@@ -65,34 +65,56 @@ function initializeFirebaseUserAppointments(uid: any, response: any): Promise<Fi
     .set({history: [response]});
 }
 
-async function bookAppointment(props: CheckAvailability, req: any, uid: string, expert: any): Promise<void> {
-  const makeAppointment = await acuityBookAppointment(props);
-  const response = {
-    ...req.body,
-    firstName: props.firstName,
-    lastName: props.lastName,
-    email: props.email,
+async function bookAppointment(check: CheckAvailability, appointmentType: any, patient: any, expert: any): Promise<void> {
+  const makeAppointment = await acuityBookAppointment(check);
+  const newAppointmentEntry = {
+    appointmentType,
+    calendarID: expert.calendarID,
+    complete: false,
+    dob: patient.profileInfo.dob,
+    email: check.email,
+    firstName: check.firstName,
+    lastName: check.lastName,
+    gender: patient.profileInfo.gender,
+    insurance: patient.profileInfo.insurance,
+    organizationId: patient.organizationId,
+    phoneNumber: patient.profileInfo.phoneNumber,
+    plan: patient.plan,
+    prepaid: false,
+    prescription: check.prescription,
+    profile: patient.profileInfo.profileImageUrl,
+    pronouns: patient.profileInfo.pronouns,
+    reason: check.reason,
+    time: check.time,
+    uid: patient.uid,
     createdAt: moment().unix(),
-    expert,
+    expert: {
+      firstName: expert.profileInfo.firstName,
+      lastName: expert.profileInfo.lastName,
+      imageUrl: expert.profileInfo.profileImageUrl,
+      profession: expert.profileInfo.profession,
+      rating: expert.rating,
+      uid: expert.uid,
+    },
     id: makeAppointment.body.id,
     locked: false,
   };
-  const document = getFirebaseUserAppointments(uid);
+  const document = getFirebaseUserAppointments(patient.uid);
   const prev = await document.get();
   const data = prev.data();
   if (prev.exists && data) {
-    await updateFirebaseUserAppointments(document, data, response);
+    await updateFirebaseUserAppointments(document, data, newAppointmentEntry);
   } else {
-    await initializeFirebaseUserAppointments(uid, response);
+    await initializeFirebaseUserAppointments(patient.uid, newAppointmentEntry);
   }
 
   const expertDocument = getFirebaseExpertAppointments(expert.uid);
   const expertPrev = await expertDocument.get();
   const expertData: FirebaseFirestore.DocumentData | undefined = expertPrev.data();
   if (expertPrev.exists && expertData) {
-    await updateExpertAppointments(expertDocument, uid, expertData, response);
+    await updateExpertAppointments(expertDocument, patient.uid, expertData, newAppointmentEntry);
   } else {
-    await initializeExpertAppointments(expert.uid, uid, response);
+    await initializeExpertAppointments(expert.uid, patient.uid, newAppointmentEntry);
   }
 }
 
@@ -123,13 +145,14 @@ module.exports = (context: Context) =>
         }
         const {time, reason, prescription, expertId, appointmentTypeId} = decoded.unsafeCoerce();
 
-        const {profileInfo: {firstName, lastName, email}} = await getFirebaseUser(uid);
+        const patient: any = await getFirebaseUser(uid);
+        const {profileInfo: {firstName, lastName, email}} = patient;
         const expert = await getFirebaseUser(expertId);
         const appointmentType = await firebaseSingleFetch("appointmentTypes", appointmentTypeId);
         const availabilityQuery: CheckAvailability = {
           firstName,
           lastName,
-          calendarId: expert.calendarId,
+          calendarId: expert.calendarID,
           time: time.toISOString(),
           email,
           reason,
@@ -139,7 +162,7 @@ module.exports = (context: Context) =>
 
         const checkTime = await acuityCheckAppointmentAvailability(availabilityQuery);
         if (checkTime.valid) {
-          await bookAppointment(availabilityQuery, req, uid, expert);
+          await bookAppointment(availabilityQuery, appointmentType, patient, expert);
         } else {
           res.status(200).send({error: checkTime.error});
           return;
