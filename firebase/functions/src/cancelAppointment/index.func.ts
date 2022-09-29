@@ -65,11 +65,12 @@ module.exports = () =>
         const uid: string = token.uid;
         const obj = {data: {appointmentId}};
 
-        const response = await acuityAppointmentCancel(obj)
+        await acuityAppointmentCancel(obj)
           .then(async (acuityResponse: any) => {
-            if (acuityResponse.body.error) {
-              res.status(200).send({response, available: false});
-              return acuityResponse.body;
+            const acuityResponseBody = acuityResponse.body;
+            if (acuityResponseBody.error) {
+              res.status(200).send({response: acuityResponseBody, available: false});
+              return acuityResponseBody;
             }
 
             const document = firebaseUserAppointments(uid);
@@ -95,7 +96,7 @@ module.exports = () =>
           })
           .catch((error: any) => {
             console.error(error);
-            res.status(200).send({error, available: false});
+            res.status(200).send({error: error.message, available: false});
           });
         return;
       }
