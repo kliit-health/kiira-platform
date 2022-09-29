@@ -1,6 +1,6 @@
 import moment = require("moment");
 import admin = require("firebase-admin");
-import {acuityCheckAppointmentAvailability, CheckAvailability} from "./appointmentCheckTime";
+import {acuityCheckAppointmentAvailability, Appointment} from "./appointmentCheckTime";
 import {acuityBookAppointment} from "./appointmentMake";
 import {firebaseSingleFetch} from "../utils/firebaseSingleFetch";
 import {Context} from "../ioc";
@@ -65,40 +65,68 @@ function initializeFirebaseUserAppointments(uid: any, response: any): Promise<Fi
     .set({history: [response]});
 }
 
-async function bookAppointment(check: CheckAvailability, appointmentType: any, patient: any, expert: any): Promise<void> {
-  const makeAppointment = await acuityBookAppointment(check);
-  const newAppointmentEntry = {
-    appointmentType,
-    calendarID: expert.calendarID,
-    complete: false,
-    dob: patient.profileInfo.dob,
-    email: check.email,
-    firstName: check.firstName,
-    lastName: check.lastName,
-    gender: patient.profileInfo.gender,
-    insurance: patient.profileInfo.insurance,
-    organizationId: patient.organizationId,
-    phoneNumber: patient.profileInfo.phoneNumber,
-    plan: patient.plan,
-    prepaid: false,
-    prescription: check.prescription,
-    profile: patient.profileInfo.profileImageUrl,
-    pronouns: patient.profileInfo.pronouns,
-    reason: check.reason,
-    time: check.time,
-    uid: patient.uid,
-    createdAt: moment().unix(),
+function createAppointmentFields(appointment: Appointment) {
+  const {prescription, reason, time} = appointment;
+  return {prescription, reason, time};
+}
+
+function createExpertFields(expert: any) {
+  const {
+    uid,
+    rating,
+    calendarID,
+    profileInfo: {firstName, lastName, profileImageUrl, profession},
+  } = expert;
+  return {
+    calendarID,
     expert: {
-      firstName: expert.profileInfo.firstName,
-      lastName: expert.profileInfo.lastName,
-      imageUrl: expert.profileInfo.profileImageUrl,
-      profession: expert.profileInfo.profession,
-      rating: expert.rating,
-      uid: expert.uid,
+      firstName,
+      lastName,
+      imageUrl: profileImageUrl,
+      profession,
+      rating,
+      uid,
     },
-    id: makeAppointment.body.id,
+  };
+}
+
+function createPatientFields(patient: any) {
+  const {uid, profileInfo, plan, organizationId} = patient;
+  const {email, dob, firstName, lastName, gender, insurance, phoneNumber, profileImageUrl, pronouns} = profileInfo;
+  return {
+    email,
+    dob,
+    firstName,
+    lastName,
+    gender,
+    insurance,
+    organizationId,
+    phoneNumber,
+    plan,
+    profile: profileImageUrl,
+    pronouns,
+    uid,
+  };
+}
+
+function firestoreAppointmentEntry(appointmentType: any, patient: any, expert: any, appointment: Appointment, appointmentId: string) {
+  return {
+    appointmentType,
+    ...createPatientFields(patient),
+    ...createExpertFields(expert),
+    ...createAppointmentFields(appointment),
+    complete: false,
+    prepaid: false,
+    createdAt: moment().unix(),
+    id: appointmentId,
     locked: false,
   };
+}
+
+async function bookAppointment(appointment: Appointment, appointmentType: any, patient: any, expert: any): Promise<void> {
+  const acuityAppointmentId = (await acuityBookAppointment(appointment)).body.id;
+  const newAppointmentEntry = firestoreAppointmentEntry(appointmentType, patient, expert, appointment, acuityAppointmentId);
+
   const document = getFirebaseUserAppointments(patient.uid);
   const prev = await document.get();
   const data = prev.data();
@@ -122,6 +150,21 @@ async function getFirebaseUser(uid: string): Promise<any> {
   return await firebaseSingleFetch("users", uid);
 }
 
+function createAppointment(patient: any, expert: any, booking: BookingRequest, appointmentType: any) {
+  const {time, reason, prescription} = booking;
+  const {profileInfo: {firstName, lastName, email}} = patient;
+  return {
+    firstName,
+    lastName,
+    calendarId: expert.calendarID,
+    time: time.toISOString(),
+    email,
+    reason,
+    prescription,
+    appointmentTypeID: appointmentType.appointmentTypeID,
+  };
+}
+
 module.exports = (context: Context) =>
   context.functions.https.onRequest(async (req: any, res: any) => {
     let idToken;
@@ -143,22 +186,13 @@ module.exports = (context: Context) =>
           res.status(400).send({error: decoded.leftOrDefault("")});
           return;
         }
-        const {time, reason, prescription, expertId, appointmentTypeId} = decoded.unsafeCoerce();
+        const booking: BookingRequest = decoded.unsafeCoerce();
+        const {expertId, appointmentTypeId} = booking;
 
-        const patient: any = await getFirebaseUser(uid);
-        const {profileInfo: {firstName, lastName, email}} = patient;
+        const patient = await getFirebaseUser(uid);
         const expert = await getFirebaseUser(expertId);
         const appointmentType = await firebaseSingleFetch("appointmentTypes", appointmentTypeId);
-        const availabilityQuery: CheckAvailability = {
-          firstName,
-          lastName,
-          calendarId: expert.calendarID,
-          time: time.toISOString(),
-          email,
-          reason,
-          prescription,
-          appointmentTypeID: appointmentType.appointmentTypeID,
-        };
+        const availabilityQuery: Appointment = createAppointment(patient, expert, booking, appointmentType);
 
         const checkTime = await acuityCheckAppointmentAvailability(availabilityQuery);
         if (checkTime.valid) {

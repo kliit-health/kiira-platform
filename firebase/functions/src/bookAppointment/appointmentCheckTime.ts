@@ -9,7 +9,7 @@ const acuity = Acuity.basic({
   apiKey: apiKey,
 });
 
-export interface CheckAvailability {
+export interface Appointment {
   readonly firstName: string,
   readonly lastName: string,
   readonly calendarId: number,
@@ -20,7 +20,7 @@ export interface CheckAvailability {
   readonly appointmentTypeID: number,
 }
 
-export function acuityCheckAppointmentAvailability(props: CheckAvailability): Promise<any> {
+export function acuityCheckAppointmentAvailability(props: Appointment): Promise<any> {
   return new Promise((resolve, reject) =>
     (async function() {
       const {calendarId, time, appointmentTypeID} = props;
