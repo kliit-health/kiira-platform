@@ -1,31 +1,29 @@
 import * as types from "./types";
+import {OperationType} from "./types";
 import {firestore} from "firebase-admin";
 
 
-export async function getUserValues(u_id: string): Promise<types.UpdateValues> {
+export async function getUserValues(uid: string): Promise<types.UpdateValues> {
   const user =
     (await firestore()
       .collection("users")
-      .doc(u_id)
+      .doc(uid)
       .get()).data();
 
   return {
-
-
     updatedCredits: user?.credits["MentalHealth"] ?? 0,
     updatedVisits: user?.visits ?? 0,
   };
 }
 
-export async function GetAppointmentValuesFromType(aType: types.AppointmentTypes, a_id: string) {
+export async function GetAppointmentValuesFromType(transactionType: types.TransactionType, transactionId: string) {
   let appointmentVal: types.UpdateValues;
 
-  switch (aType) {
-    case types.AppointmentTypes.Appointment: {
-      appointmentVal = await getAppointmentValues(a_id);
-    }
+  switch (transactionType) {
+    case types.TransactionType.Appointment: {
+      appointmentVal = await getAppointmentValues(transactionId);
       break;
-
+    }
     default: {
       appointmentVal = {
         updatedCredits: 0,
@@ -33,16 +31,16 @@ export async function GetAppointmentValuesFromType(aType: types.AppointmentTypes
       };
 
       console.log("Invalid transactionType given!");
-    }
       break;
+    }
   }
   return appointmentVal;
 }
 
-export async function getAppointmentValues(a_id: string): Promise<types.UpdateValues> {
+export async function getAppointmentValues(appointmentId: string): Promise<types.UpdateValues> {
   const appointmentDoc = await firestore()
     .collection("appointmentTypes")
-    .doc(a_id)
+    .doc(appointmentId)
     .get();
 
   // Error handle if there was no appointment with valid id. Meaning .data is undefined
@@ -59,24 +57,17 @@ export async function getAppointmentValues(a_id: string): Promise<types.UpdateVa
   };
 }
 
-export async function getOperationFromId(o_id: string): Promise<number> {
-  const opType: types.OperationTypes = types.OperationTypes[o_id as keyof typeof types.OperationTypes];
-
-  switch (opType) {
-    case types.OperationTypes.Credit: {
+export async function getOperationFromId(opId: OperationType): Promise<number> {
+  switch (opId) {
+    case types.OperationType.Credit: {
       return 1;
     }
-      break;
-
-    case types.OperationTypes.Debit: {
+    case types.OperationType.Debit: {
       return -1;
     }
-      break;
-
     default: {
       console.log("Invalid transactionType given!");
       return 1;
     }
-      break;
   }
 }

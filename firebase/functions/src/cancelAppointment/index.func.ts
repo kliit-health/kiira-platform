@@ -1,6 +1,8 @@
 import firebaseFunctions = require("firebase-functions");
 import firebaseAdmin = require("firebase-admin");
 import {acuityAppointmentCancel} from "./appointmentCancel";
+import {processCreditsAndVisits} from "../creditsProcessing/index.func";
+import {OperationType, TransactionType} from "../creditsProcessing/types";
 
 function firebaseUserAppointments(uid: string): FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> {
   return firebaseAdmin
@@ -10,9 +12,17 @@ function firebaseUserAppointments(uid: string): FirebaseFirestore.DocumentRefere
 }
 
 function removeAppointmentFromHistory(appointments: FirebaseFirestore.DocumentData, id: any): any {
-  return appointments.history.filter(
-    (item: any) => item.id !== id,
+  let removed = undefined;
+  const filtered: any = appointments.history.filter(
+    (item: any) => {
+      const predicate: boolean = item.id !== id;
+      if (!predicate) {
+        removed = item;
+      }
+      return predicate;
+    },
   );
+  return {removed, filtered};
 }
 
 function firebaseUpdateAppointments(document: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, appointments: FirebaseFirestore.DocumentData): Promise<FirebaseFirestore.WriteResult> {
@@ -51,33 +61,33 @@ module.exports = () =>
     try {
       const token = await firebaseAdmin.auth().verifyIdToken(idToken);
       if (token) {
-        const {id, expertUid} = req.body;
+        const {appointmentId, expertId} = req.body;
         const uid: string = token.uid;
-        const obj = {data: {id}};
+        const obj = {data: {appointmentId}};
 
-        return await acuityAppointmentCancel(obj)
-          .then((res: any) => {
-            return res;
-          })
-          .then(async (res: any) => {
-            if (res.body.error) {
-              return res.body;
+        const response = await acuityAppointmentCancel(obj)
+          .then(async (acuityResponse: any) => {
+            if (acuityResponse.body.error) {
+              res.status(200).send({response, available: false});
+              return acuityResponse.body;
             }
 
             const document = firebaseUserAppointments(uid);
-            const response = await document.get();
-            const appointments = response.data();
+            const snapshot = await document.get();
+            const appointments = snapshot.data();
             if (appointments) {
-              appointments.history = removeAppointmentFromHistory(appointments, id);
+              const {removed, filtered}: any = removeAppointmentFromHistory(appointments, appointmentId);
+              appointments.history = filtered;
               await firebaseUpdateAppointments(document, appointments);
+              await processCreditsAndVisits(uid, TransactionType.Appointment, removed.appointmentType.id, OperationType.Credit);
             }
 
-            const expertDocument = getExpertAppointments(expertUid);
+            const expertDocument = getExpertAppointments(expertId);
             const expertResponse = await expertDocument.get();
             const expertAppointments = expertResponse.data() ?? {};
             const filtered = expertAppointments.history[uid].filter(
               (item: any) => {
-                return item.id !== id ? item : false;
+                return item.id !== appointmentId ? item : false;
               },
             );
 
@@ -85,11 +95,15 @@ module.exports = () =>
           })
           .catch((error: any) => {
             console.error(error);
+            res.status(200).send({error, available: false});
           });
+        return;
       }
-      return res.sendStatus(200);
+      res.sendStatus(401);
+      return;
     } catch (error) {
       console.error(error);
-      return {available: false};
+      res.status(200).send({error, available: false});
+      return;
     }
   });

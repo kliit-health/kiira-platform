@@ -6,6 +6,8 @@ import {firebaseSingleFetch} from "../utils/firebaseSingleFetch";
 import {Context} from "../ioc";
 import {DateFromAny, Interface, NonEmptyString} from "purify-ts-extra-codec";
 import {boolean, GetType, optional, string} from "purify-ts";
+import {processCreditsAndVisits} from "../creditsProcessing/index.func";
+import {OperationType, TransactionType} from "../creditsProcessing/types";
 
 const BookingRequest = Interface({
   time: DateFromAny,
@@ -197,6 +199,7 @@ module.exports = (context: Context) =>
         const checkTime = await acuityCheckAppointmentAvailability(availabilityQuery);
         if (checkTime.valid) {
           await bookAppointment(availabilityQuery, appointmentType, patient, expert);
+          await processCreditsAndVisits(uid, TransactionType.Appointment, appointmentTypeId, OperationType.Debit);
         } else {
           res.status(200).send({error: checkTime.error});
           return;

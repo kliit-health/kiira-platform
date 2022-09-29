@@ -5,14 +5,14 @@ export interface UpdateValues {
 
 }
 
-export enum OperationTypes {
+export enum OperationType {
 
   Credit = "Credit",
   Debit = "Debit"
 
 }
 
-export enum AppointmentTypes {
+export enum TransactionType {
 
   Appointment = "Appointment",
   None = ""
