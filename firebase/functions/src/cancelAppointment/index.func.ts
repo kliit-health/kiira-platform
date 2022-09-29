@@ -22,11 +22,11 @@ function firebaseUpdateAppointments(document: FirebaseFirestore.DocumentReferenc
   );
 }
 
-function getExpertAppointments(expert: any): FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> {
+function getExpertAppointments(expert: string): FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> {
   return firebaseAdmin
     .firestore()
     .collection("appointments")
-    .doc(expert.uid);
+    .doc(expert);
 }
 
 function firebaseUpdateExpertAppointments(expertDocument: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, uid: string, filtered: any): Promise<FirebaseFirestore.WriteResult> {
@@ -45,13 +45,13 @@ module.exports = () =>
     ) {
       idToken = req.headers.authorization.split("Bearer ")[1];
     } else {
-      res.status(403).send("Unauthorized");
+      res.status(401).send("Unauthorized");
       return;
     }
     try {
       const token = await firebaseAdmin.auth().verifyIdToken(idToken);
       if (token) {
-        const {id, expert} = req.body;
+        const {id, expertUid} = req.body;
         const uid: string = token.uid;
         const obj = {data: {id}};
 
@@ -72,7 +72,7 @@ module.exports = () =>
               await firebaseUpdateAppointments(document, appointments);
             }
 
-            const expertDocument = getExpertAppointments(expert);
+            const expertDocument = getExpertAppointments(expertUid);
             const expertResponse = await expertDocument.get();
             const expertAppointments = expertResponse.data() ?? {};
             const filtered = expertAppointments.history[uid].filter(
