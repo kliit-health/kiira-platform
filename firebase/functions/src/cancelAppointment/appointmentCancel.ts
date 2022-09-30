@@ -12,7 +12,7 @@ const acuity = Acuity.basic({
 export function acuityAppointmentCancel(props: any) {
   return new Promise((resolve, reject) =>
     (async function() {
-      const {id} = props.data;
+      const {appointmentId} = props.data;
       try {
         const options = {
           method: "PUT",
@@ -20,8 +20,8 @@ export function acuityAppointmentCancel(props: any) {
             cancelNote: "Unable to make the appointment!",
           },
         };
-        await acuity.request(
-          `/appointments/${id}/cancel`,
+        acuity.request(
+          `/appointments/${appointmentId}/cancel`,
           options,
           (err: any, response: any, appointments: any) => {
             resolve(response);

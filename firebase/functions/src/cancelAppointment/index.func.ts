@@ -1,8 +1,8 @@
 import firebaseFunctions = require("firebase-functions");
 import firebaseAdmin = require("firebase-admin");
 import {acuityAppointmentCancel} from "./appointmentCancel";
-import {processCreditsAndVisits} from "../creditsProcessing/index.func";
 import {OperationType, TransactionType} from "../creditsProcessing/types";
+import {processCreditsAndVisits} from "../creditsProcessing/util";
 
 function firebaseUserAppointments(uid: string): FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> {
   return firebaseAdmin
@@ -15,7 +15,7 @@ function removeAppointmentFromHistory(appointments: FirebaseFirestore.DocumentDa
   let removed = undefined;
   const filtered: any = appointments.history.filter(
     (item: any) => {
-      const predicate: boolean = item.id !== id;
+      const predicate: boolean = item.id != id;
       if (!predicate) {
         removed = item;
       }
@@ -69,7 +69,7 @@ module.exports = () =>
           .then(async (acuityResponse: any) => {
             const acuityResponseBody = acuityResponse.body;
             if (acuityResponseBody.error) {
-              res.status(200).send({response: acuityResponseBody, available: false});
+              res.status(200).send({response: acuityResponseBody});
               return acuityResponseBody;
             }
 
@@ -93,6 +93,7 @@ module.exports = () =>
             );
 
             await firebaseUpdateExpertAppointments(expertDocument, uid, filtered);
+            res.sendStatus(200);
           })
           .catch((error: any) => {
             console.error(error);

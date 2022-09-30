@@ -4,13 +4,13 @@ import {acuityCheckAppointmentAvailability, Appointment} from "./appointmentChec
 import {acuityBookAppointment} from "./appointmentMake";
 import {firebaseSingleFetch} from "../utils/firebaseSingleFetch";
 import {Context} from "../ioc";
-import {DateFromAny, Interface, NonEmptyString} from "purify-ts-extra-codec";
+import {FormattedStringFromDate, Interface, NonEmptyString} from "purify-ts-extra-codec";
 import {boolean, GetType, optional, string} from "purify-ts";
-import {processCreditsAndVisits} from "../creditsProcessing/index.func";
 import {OperationType, TransactionType} from "../creditsProcessing/types";
+import {processCreditsAndVisits} from "../creditsProcessing/util";
 
 const BookingRequest = Interface({
-  time: DateFromAny,
+  time: FormattedStringFromDate("yyyy-MM-dd’T’HH:mm:ss.SSSZ"),
   notes: optional(string),
   reason: NonEmptyString,
   prescription: boolean,
@@ -159,7 +159,7 @@ function createAppointment(patient: any, expert: any, booking: BookingRequest, a
     firstName,
     lastName,
     calendarId: expert.calendarID,
-    time: time.toISOString(),
+    time,
     email,
     reason,
     prescription,

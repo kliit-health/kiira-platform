@@ -11,7 +11,7 @@ export async function getUserValues(uid: string): Promise<types.UpdateValues> {
       .get()).data();
 
   return {
-    updatedCredits: user?.credits["MentalHealth"] ?? 0,
+    updatedCredits: user?.credits?.["MentalHealth"] ?? 0,
     updatedVisits: user?.visits ?? 0,
   };
 }
