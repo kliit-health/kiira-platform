@@ -61,8 +61,7 @@ module.exports = () =>
     try {
       const token = await firebaseAdmin.auth().verifyIdToken(idToken);
       if (token) {
-        const {appointmentId, expertId} = req.body;
-        const uid: string = token.uid;
+        const {patientId, appointmentId, expertId} = req.body;
         const obj = {data: {appointmentId}};
 
         await acuityAppointmentCancel(obj)
@@ -73,26 +72,26 @@ module.exports = () =>
               return acuityResponseBody;
             }
 
-            const document = firebaseUserAppointments(uid);
+            const document = firebaseUserAppointments(patientId);
             const snapshot = await document.get();
             const appointments = snapshot.data();
             if (appointments) {
               const {removed, filtered}: any = removeAppointmentFromHistory(appointments, appointmentId);
               appointments.history = filtered;
               await firebaseUpdateAppointments(document, appointments);
-              await processCreditsAndVisits(uid, TransactionType.Appointment, removed.appointmentType.id, OperationType.Credit);
+              await processCreditsAndVisits(patientId, TransactionType.Appointment, removed.appointmentType.id, OperationType.Credit);
             }
 
             const expertDocument = getExpertAppointments(expertId);
             const expertResponse = await expertDocument.get();
             const expertAppointments = expertResponse.data() ?? {};
-            const filtered = expertAppointments.history[uid].filter(
+            const filtered = expertAppointments.history[patientId].filter(
               (item: any) => {
                 return item.id !== appointmentId ? item : false;
               },
             );
 
-            await firebaseUpdateExpertAppointments(expertDocument, uid, filtered);
+            await firebaseUpdateExpertAppointments(expertDocument, patientId, filtered);
             res.sendStatus(200);
           })
           .catch((error: any) => {
