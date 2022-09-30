@@ -5,7 +5,7 @@ import * as types from "./types";
 
 export async function processCreditsAndVisits(userId: string, transactionType: TransactionType, transactionId: string, operation: OperationType) {
   const userVal = await getData.getUserValues(userId);
-  const appointmentVal = await getData.getAppointmentValuesFromType(transactionType, transactionId);
+  const appointmentVal = await getData.GetAppointmentValuesFromType(transactionType, transactionId);
   // Determine if the operation involves adding or subtracting
   const valuesToAdd = await processValuesToAdd(userVal, appointmentVal, operation);
 
