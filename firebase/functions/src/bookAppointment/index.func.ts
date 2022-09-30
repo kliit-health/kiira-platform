@@ -4,13 +4,13 @@ import {acuityCheckAppointmentAvailability, Appointment} from "./appointmentChec
 import {acuityBookAppointment} from "./appointmentMake";
 import {firebaseSingleFetch} from "../utils/firebaseSingleFetch";
 import {Context} from "../ioc";
-import {FormattedStringFromDate, Interface, NonEmptyString} from "purify-ts-extra-codec";
+import {Interface, NonEmptyString} from "purify-ts-extra-codec";
 import {boolean, GetType, optional, string} from "purify-ts";
 import {OperationType, TransactionType} from "../creditsProcessing/types";
 import {processCreditsAndVisits} from "../creditsProcessing/util";
 
 const BookingRequest = Interface({
-  time: FormattedStringFromDate("yyyy-MM-dd’T’HH:mm:ss.SSSZ"),
+  time: NonEmptyString,
   notes: optional(string),
   reason: NonEmptyString,
   prescription: boolean,
