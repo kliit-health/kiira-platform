@@ -1,18 +1,19 @@
 import * as types from "./types";
-import {OperationType} from "./types";
+import {AppointmentType, OperationType} from "./types";
 import {firestore} from "firebase-admin";
 
 
-export async function getUserValues(uid: string): Promise<types.UpdateValues> {
+export async function getUserValues(uid: string): Promise<types.UserBalance> {
   const user =
     (await firestore()
       .collection("users")
       .doc(uid)
       .get()).data();
 
+  const credit: number = user?.credits?.[AppointmentType.TherapySession];
   return {
-    updatedCredits: user?.credits?.["MentalHealth"] ?? 0,
-    updatedVisits: user?.visits ?? 0,
+    credits: {[AppointmentType.TherapySession]: credit ?? 0},
+    visits: user?.visits ?? 0,
   };
 }
 
@@ -38,7 +39,7 @@ export async function getAppointmentValuesFromType(transactionType: types.Transa
   return appointmentVal;
 }
 
-export async function getAppointmentValues(appointmentId: string): Promise<types.UpdateValues> {
+export async function getAppointmentValues(appointmentId: string): Promise<types.AppointmentValues> {
   const appointmentDoc = await firestore()
     .collection("appointmentTypes")
     .doc(appointmentId)
@@ -49,16 +50,10 @@ export async function getAppointmentValues(appointmentId: string): Promise<types
 
   console.log("credits : " + data?.credits);
 
-
   return {
-
-    updatedCredits: data?.credits,
-    updatedVisits: data?.credits,
-
+    type: data?.title ?? "",
+    visitCost: data?.credits,
   };
-
-
-
 }
 
 export async function getOperationFromId(opId: OperationType): Promise<number> {
