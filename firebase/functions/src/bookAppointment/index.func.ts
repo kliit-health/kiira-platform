@@ -5,7 +5,7 @@ import {acuityBookAppointment} from "./appointmentMake";
 import {firebaseSingleFetch} from "../utils/firebaseSingleFetch";
 import {Context} from "../ioc";
 import {Interface, NonEmptyString} from "purify-ts-extra-codec";
-import {boolean, GetType, optional, string} from "purify-ts";
+import {GetType, optional, string} from "purify-ts";
 import {OperationType, TransactionType} from "../creditsProcessing/types";
 import {processCreditsAndVisits} from "../creditsProcessing/util";
 
@@ -13,7 +13,6 @@ const BookingRequest = Interface({
   time: NonEmptyString,
   notes: optional(string),
   reason: NonEmptyString,
-  prescription: boolean,
   expertId: NonEmptyString,
   appointmentTypeId: NonEmptyString,
 });
@@ -85,7 +84,7 @@ function createExpertFields(expert: any) {
       firstName,
       lastName,
       imageUrl: profileImageUrl,
-      profession,
+      profession: profession.shortName,
       rating,
       uid,
     },
@@ -153,7 +152,7 @@ async function getFirebaseUser(uid: string): Promise<any> {
 }
 
 function createAppointment(patient: any, expert: any, booking: BookingRequest, appointmentType: any) {
-  const {time, reason, prescription} = booking;
+  const {time, reason} = booking;
   const {profileInfo: {firstName, lastName, email}} = patient;
   return {
     firstName,
@@ -162,7 +161,6 @@ function createAppointment(patient: any, expert: any, booking: BookingRequest, a
     time,
     email,
     reason,
-    prescription,
     appointmentTypeID: appointmentType.appointmentTypeID,
   };
 }
