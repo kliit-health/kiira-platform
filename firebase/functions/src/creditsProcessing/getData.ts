@@ -16,12 +16,13 @@ export async function getUserValues(uid: string): Promise<types.UpdateValues> {
   };
 }
 
-export async function GetAppointmentValuesFromType(transactionType: types.TransactionType, transactionId: string) {
+export async function getAppointmentValuesFromType(transactionType: types.TransactionType, transactionId: string) {
   let appointmentVal: types.UpdateValues;
 
   switch (transactionType) {
     case types.TransactionType.Appointment: {
       appointmentVal = await getAppointmentValues(transactionId);
+      appointmentVal.updatedVisits /= 2;
       break;
     }
     default: {
@@ -43,11 +44,11 @@ export async function getAppointmentValues(appointmentId: string): Promise<types
     .doc(appointmentId)
     .get();
 
-  // Error handle if there was no appointment with valid id. Meaning .data is undefined
+  // Insert Error handle if there was no appointment with valid id. Meaning .data is undefined
   const data = appointmentDoc.data(); // ?? { credits : 1, visits : 1 };
 
-  console.log("data " + data);
   console.log("credits : " + data?.credits);
+
 
   return {
 
@@ -55,6 +56,9 @@ export async function getAppointmentValues(appointmentId: string): Promise<types
     updatedVisits: data?.credits,
 
   };
+
+
+
 }
 
 export async function getOperationFromId(opId: OperationType): Promise<number> {
