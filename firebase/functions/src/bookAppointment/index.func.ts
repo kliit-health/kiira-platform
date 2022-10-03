@@ -165,8 +165,9 @@ function createAppointment(patient: any, expert: any, booking: BookingRequest, a
   };
 }
 
-module.exports = (context: Context) =>
-  context.functions.https.onRequest(async (req: any, res: any) => {
+module.exports = (context: Context) => {
+  const flog = context.logger;
+  return context.functions.https.onRequest(async (req: any, res: any) => {
     let idToken;
     if (
       req.headers.authorization &&
@@ -183,7 +184,9 @@ module.exports = (context: Context) =>
       if (token) {
         const decoded = BookingRequest.decode(req.body);
         if (decoded.isLeft()) {
-          res.status(400).send({error: decoded.leftOrDefault("")});
+          const message: string = decoded.leftOrDefault("");
+          flog.info(message);
+          res.status(400).send({error: message});
           return;
         }
         const booking: BookingRequest = decoded.unsafeCoerce();
@@ -212,3 +215,4 @@ module.exports = (context: Context) =>
       return {available: false};
     }
   });
+};
