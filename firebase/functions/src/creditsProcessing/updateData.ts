@@ -1,4 +1,4 @@
-import {OperationType, TransactionType, AppointmentType, CreditType, UpdateValues,UserBalance, Credits} from "./types";
+import {UserBalance, Credits} from "./types";
 import {firestore} from "firebase-admin";
 
 
@@ -8,7 +8,7 @@ export async function setUser(u_id: string, values: UserBalance) {
     .collection("users")
     .doc(u_id);
 
-  const areCreditsDefined: boolean =  (await userDocument.get()).data().containsKey("Credits");
+  const areCreditsDefined: boolean =  (await userDocument.get()).data()?.containsKey("Credits");
     
       if(areCreditsDefined == true){
 
