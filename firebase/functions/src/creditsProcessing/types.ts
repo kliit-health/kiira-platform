@@ -1,23 +1,19 @@
-export interface UpdateValues {
-  updatedVisits: number;
-  updatedCredits?: Credits;
-}
-
 export enum AppointmentType {
   TherapySession = "Therapy Session",
   VideoVisit = "Video Visit",
   HealthCheck = "Health Check"
 }
+
 export enum CreditType {
   
-  TherapySession = "Mental Health",
+  TherapySession = "TherapySession",
 }
 
 
 export type Credits = {
   //For later forms of scalability
-  //[key in AppointmentType]?: number;
-  MentalHealth : number;
+  [key in CreditType]: number;
+  //MentalHealth : number;
 }
 
 export interface UserBalance {

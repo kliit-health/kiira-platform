@@ -1,4 +1,4 @@
-import {UserBalance,TransactionType,AppointmentValues, AppointmentType, OperationType} from "./types";
+import {UserBalance,TransactionType,AppointmentValues, AppointmentType, OperationType,CreditType} from "./types";
 import {firestore} from "firebase-admin";
 
 
@@ -9,12 +9,12 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
       .doc(uid)
       .get()).data();
 
-  const credit: number = user?.credits?.MentalHealth;
+  const credit: number = user?.credits?.TherapySession;
 
   return {
     
     credits: { 
-      MentalHealth: user?.credits? credit : 0
+      [CreditType.TherapySession]: credit ?? 0
     },
 
     visits: user?.visits ?? 0,
@@ -49,12 +49,14 @@ export async function getAppointmentValues(appointmentId: string): Promise<Appoi
     .get();
 
   // Insert Error handle if there was no appointment with valid id. Meaning .data is undefined
-  const data = appointmentDoc.data(); // ?? { credits : 1, visits : 1 };
+  const data = appointmentDoc.data();
 
   console.log("credits from appointment : " + data?.credits);
-
+  //Insert error handle for if the title or credits field for the appointment is undefined
+  //if(!data?.title){return;}
+  
   return {
-    type: data?.title ?? "",
+    type: data?.title.toString(),
     visitCost: data?.credits ?? 0,
   };
 }
@@ -69,12 +71,40 @@ export async function getOperationFromId(opId: OperationType): Promise<number> {
     }
     default: {
       console.log("Invalid transactionType given!");
-      return 1;
+      throw new Error("Invalid transactionType given!");
     }
   }
 }
 export async function getCreditsForAppointmentType(user:UserBalance,appointmentType:AppointmentType) : Promise<number>{
   
 
-  return user.credits.MentalHealth;
+  return user.credits[getCreditTypeForAppointment(appointmentType)] ?? 0;
+}
+
+export function getCreditTypeForAppointment(appointmentType:AppointmentType) : CreditType{
+  
+switch(appointmentType){
+
+  case AppointmentType.TherapySession:
+    {
+
+      return CreditType.TherapySession;
+    }
+  
+    case AppointmentType.VideoVisit:
+      {
+  
+        return CreditType.TherapySession;
+      }
+
+      default:
+        {
+          throw new Error("Invalid Appointment Type passed for Credit Type Maping");
+
+        }
+
+
+
+}
+
 }

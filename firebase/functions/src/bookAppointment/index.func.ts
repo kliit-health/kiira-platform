@@ -67,8 +67,8 @@ function initializeFirebaseUserAppointments(uid: any, response: any): Promise<Fi
 }
 
 function createAppointmentFields(appointment: Appointment) {
-  const {prescription, reason, time} = appointment;
-  return {prescription, reason, time};
+  const {reason, time} = appointment;
+  return {reason, time};
 }
 
 function createExpertFields(expert: any) {

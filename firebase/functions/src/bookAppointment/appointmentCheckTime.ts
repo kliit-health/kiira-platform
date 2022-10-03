@@ -16,7 +16,6 @@ export interface Appointment {
   readonly time: string,
   readonly email: string,
   readonly reason: string,
-  readonly prescription: boolean,
   readonly appointmentTypeID: number,
 }
 

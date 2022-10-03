@@ -1,47 +1,60 @@
-import {OperationType, TransactionType, AppointmentValues,UserBalance} from "./types";
+import {OperationType, TransactionType, AppointmentValues,UserBalance,CreditType} from "./types";
 import * as getData from "./getData";
 import * as updateData from "./updateData";
-import {getAppointmentValues} from "./getData";
+import {getAppointmentValues,getCreditTypeForAppointment} from "./getData";
 
 export async function processCreditsAndVisits(userId: string, transactionType: TransactionType, transactionId: string, operation: OperationType) {
   const userBalances = await getData.getUserValues(userId);
   const appointmentVal = await getAppointmentValues(transactionId);
   // Determine if the operation involves adding or subtracting
-  const valuesToAdd = await processBalances(userBalances, appointmentVal, operation);
+  const updatedUserBalance = await processBalancesForAppointments(userBalances, appointmentVal, operation);
 
-  await updateData.setUser(userId, valuesToAdd);
+  await updateData.updateUserBalances(userId, updatedUserBalance);
 }
 
-async function processBalances(userValues: UserBalance, appointmentValues: AppointmentValues, operationId: OperationType): Promise<UserBalance> {
-  const valuesSign = await getData.getOperationFromId(operationId);
-  //Remove hardcoding for selection of userCredits to use here
-  const userCredit: number | undefined = userValues.credits.MentalHealth;
+async function processBalancesForAppointments(userValues: UserBalance, appointmentValues: AppointmentValues, operationId: OperationType): Promise<UserBalance> {
+
+  const creditType = getCreditTypeForAppointment(appointmentValues.type);
 
   const finalBalance : UserBalance ={
-        visits:0,
-        credits:{
-        MentalHealth:0,
-        },
+        visits:userValues.visits,
+        credits:userValues.credits
   }
 
+  switch(operationId){
 
-if(userValues.visits > 0 && valuesSign == -1){
+    case OperationType.Credit:
+      {
 
-  finalBalance.visits = userValues.visits + appointmentValues.visitCost * valuesSign;
-  if (finalBalance.visits < 0) {
-    finalBalance.visits = 0;
+        finalBalance.credits[creditType]++;
+
+      }
+      break;
+      case OperationType.Debit:{
+        if(userValues.visits > 0){
+
+          onlyUpdateVisitsOnDebit(operationId, finalBalance, appointmentValues);
+        }
+        else{
+
+          finalBalance.credits[creditType]--;
+        }
+
+      }
+      break;
+
   }
-}
-
-
-  if (userCredit) {
-    
-    finalBalance.credits.MentalHealth = userCredit + appointmentValues.visitCost * valuesSign;
-    if (finalBalance.credits.MentalHealth < 0) {
-      finalBalance.credits.MentalHealth= 0;
-    }
-  }
-
 
   return finalBalance;
 }
+
+function onlyUpdateVisitsOnDebit(operationId: OperationType, finalBalance: UserBalance, appointmentValues: AppointmentValues) {
+  if (operationId == OperationType.Debit) {
+
+    finalBalance.visits -= appointmentValues.visitCost;
+    if (finalBalance.visits < 0) {
+      finalBalance.visits = 0;
+    }
+  }
+}
+
