@@ -10,26 +10,30 @@ export async function getUserValues(uid: string): Promise<types.UserBalance> {
       .doc(uid)
       .get()).data();
 
-  const credit: number = user?.credits?.[AppointmentType.TherapySession];
+  const credit: number = user?.credits?.MentalHealth;
+
   return {
-    credits: {[AppointmentType.TherapySession]: credit ?? 0},
+    
+    credits: { 
+      MentalHealth: user?.credits? credit : 0
+    },
+
     visits: user?.visits ?? 0,
   };
 }
 
 export async function getAppointmentValuesFromType(transactionType: types.TransactionType, transactionId: string) {
-  let appointmentVal: types.UpdateValues;
+  let appointmentVal: types.AppointmentValues;
 
   switch (transactionType) {
     case types.TransactionType.Appointment: {
       appointmentVal = await getAppointmentValues(transactionId);
-      appointmentVal.updatedVisits /= 2;
       break;
     }
     default: {
       appointmentVal = {
-        updatedCredits: 0,
-        updatedVisits: 0,
+        type: AppointmentType.HealthCheck,
+        visitCost: 0
       };
 
       console.log("Invalid transactionType given!");
@@ -69,4 +73,9 @@ export async function getOperationFromId(opId: OperationType): Promise<number> {
       return 1;
     }
   }
+}
+export async function getCreditsForAppointmentType(user:types.UserBalance,appointmentType:types.AppointmentType) : number{
+  
+
+  return user.credits.MentalHealth;
 }

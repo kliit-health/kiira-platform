@@ -3,6 +3,7 @@ import * as getData from "./getData";
 import * as updateData from "./updateData";
 import * as types from "./types";
 import {getAppointmentValues} from "./getData";
+import { number } from "purify-ts";
 
 export async function processCreditsAndVisits(userId: string, transactionType: TransactionType, transactionId: string, operation: OperationType) {
   const userBalances = await getData.getUserValues(userId);
@@ -13,24 +14,34 @@ export async function processCreditsAndVisits(userId: string, transactionType: T
   await updateData.setUser(userId, valuesToAdd);
 }
 
-async function processBalances(userValues: types.UserBalance, appointmentValues: types.AppointmentValues, operationId: OperationType): Promise<types.UserBalance> {
+async function processBalances(userValues: types.UpdateValues, appointmentValues: types.AppointmentValues, operationId: OperationType): Promise<types.UserBalance> {
   const valuesSign = await getData.getOperationFromId(operationId);
-  const userCredit: number | undefined = userValues.credits?.[appointmentValues.type];
+  //Remove hardcoding for selection of userCredits to use here
+  const userCredit: number | undefined = userValues.credits.MentalHealth;
 
+const finalBalance : types.UserBalance ={
+      visits:0,
+      credits:{
+       MentalHealth:0,
+      },
+}
+
+
+if(userValues.visits > 0 && valuesSign == -1){
+
+  finalBalance.visits = userValues.visits + appointmentValues.visitCost * valuesSign;
+  if (finalBalance.visits < 0) {
+    finalBalance.visits = 0;
+  }
+}
   if (userCredit) {
-    let finalCredits = userCredit + valuesSign;
-    if (finalCredits < 0) {
-      finalCredits = 0;
+    
+    finalBalance.credits.MentalHealth= userCredit + appointmentValues.visitCost * valuesSign;
+    if (finalBalance.credits.MentalHealth < 0) {
+      finalBalance.credits.MentalHealth= 0;
     }
   }
 
-  let updatedVisits = userValues.visits + appointmentValues.visitCost * valuesSign;
-  if (updatedVisits < 0) {
-    updatedVisits = 0;
-  }
 
-  return {
-    updatedCredits: finalCredits,
-    updatedVisits,
-  };
+  return finalBalance;
 }

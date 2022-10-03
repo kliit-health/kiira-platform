@@ -8,14 +8,21 @@ export enum AppointmentType {
   VideoVisit = "Video Visit",
   HealthCheck = "Health Check"
 }
+export enum CreditType {
+  
+  TherapySession = "Mental Health",
+}
 
-type Credits = {
-  [key in AppointmentType]?: number;
+
+export type Credits = {
+  //For later forms of scalability
+  //[key in AppointmentType]?: number;
+  MentalHealth : number;
 }
 
 export interface UserBalance {
   visits: number;
-  credits?: Credits;
+  credits: Credits;
 }
 
 export interface AppointmentValues {
