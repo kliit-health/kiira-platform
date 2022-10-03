@@ -1,9 +1,8 @@
-import * as types from "./types";
-import {AppointmentType, OperationType} from "./types";
+import {UserBalance,TransactionType,AppointmentValues, AppointmentType, OperationType} from "./types";
 import {firestore} from "firebase-admin";
 
 
-export async function getUserValues(uid: string): Promise<types.UserBalance> {
+export async function getUserValues(uid: string): Promise<UserBalance> {
   const user =
     (await firestore()
       .collection("users")
@@ -22,11 +21,11 @@ export async function getUserValues(uid: string): Promise<types.UserBalance> {
   };
 }
 
-export async function getAppointmentValuesFromType(transactionType: types.TransactionType, transactionId: string) {
-  let appointmentVal: types.AppointmentValues;
+export async function getAppointmentValuesFromType(transactionType: TransactionType, transactionId: string) {
+  let appointmentVal: AppointmentValues;
 
   switch (transactionType) {
-    case types.TransactionType.Appointment: {
+    case TransactionType.Appointment: {
       appointmentVal = await getAppointmentValues(transactionId);
       break;
     }
@@ -43,7 +42,7 @@ export async function getAppointmentValuesFromType(transactionType: types.Transa
   return appointmentVal;
 }
 
-export async function getAppointmentValues(appointmentId: string): Promise<types.AppointmentValues> {
+export async function getAppointmentValues(appointmentId: string): Promise<AppointmentValues> {
   const appointmentDoc = await firestore()
     .collection("appointmentTypes")
     .doc(appointmentId)
@@ -52,20 +51,20 @@ export async function getAppointmentValues(appointmentId: string): Promise<types
   // Insert Error handle if there was no appointment with valid id. Meaning .data is undefined
   const data = appointmentDoc.data(); // ?? { credits : 1, visits : 1 };
 
-  console.log("credits : " + data?.credits);
+  console.log("credits from appointment : " + data?.credits);
 
   return {
     type: data?.title ?? "",
-    visitCost: data?.credits,
+    visitCost: data?.credits ?? 0,
   };
 }
 
 export async function getOperationFromId(opId: OperationType): Promise<number> {
   switch (opId) {
-    case types.OperationType.Credit: {
+    case OperationType.Credit: {
       return 1;
     }
-    case types.OperationType.Debit: {
+    case OperationType.Debit: {
       return -1;
     }
     default: {
@@ -74,7 +73,7 @@ export async function getOperationFromId(opId: OperationType): Promise<number> {
     }
   }
 }
-export async function getCreditsForAppointmentType(user:types.UserBalance,appointmentType:types.AppointmentType) : number{
+export async function getCreditsForAppointmentType(user:UserBalance,appointmentType:AppointmentType) : Promise<number>{
   
 
   return user.credits.MentalHealth;

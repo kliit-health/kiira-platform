@@ -1,4 +1,4 @@
-import * as types from "./types";
+import {TransactionType} from "./types";
 import {OperationType} from "./types";
 import {Context} from "../ioc";
 import {enumeration} from "purify-ts";
@@ -15,7 +15,7 @@ module.exports = (context: Context) => {
       },
     } = data.body;
 
-    const transactionType = types.TransactionType[aType as keyof typeof types.TransactionType];
+    const transactionType = TransactionType[aType as keyof typeof TransactionType];
     const opEnum = enumeration(OperationType).decode(operation).toMaybe().extract();
     if (!opEnum) {
       return {success: false, error: `Operation type ${operation} is not valid.`};
