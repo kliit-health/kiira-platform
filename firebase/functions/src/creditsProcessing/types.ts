@@ -5,15 +5,14 @@ export enum AppointmentType {
 }
 
 export enum CreditType {
-  
+
   TherapySession = "TherapySession",
 }
 
-
 export type Credits = {
-  //For later forms of scalability
+  // For later forms of scalability
   [key in CreditType]: number;
-  //MentalHealth : number;
+  // MentalHealth : number;
 }
 
 export interface UserBalance {

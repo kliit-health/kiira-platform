@@ -1,10 +1,10 @@
-const firebaseFetchAdmin = require("firebase-admin");
+import firebaseFetchAdmin = require("firebase-admin");
 module.exports = (collectionName: any, conditions = [], limit = 20000) =>
   new Promise((resolve, reject) =>
     (async function() {
       const database = firebaseFetchAdmin.firestore();
       try {
-        let query = database.collection(collectionName);
+        let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = database.collection(collectionName);
         for (const condition of conditions) {
           const {key, operator, value} = condition;
           query = query.where(key, operator, value);

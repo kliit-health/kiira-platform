@@ -1,10 +1,10 @@
-import {TransactionType, OperationType} from "./types";
+import {OperationType, TransactionType} from "./types";
 import {Context} from "../ioc";
 import {enumeration} from "purify-ts";
 import {processCreditsAndVisits} from "./util";
 
 module.exports = (context: Context) => {
-  return context.functions.https.onRequest(async (req : any, res : any) => {
+  return context.functions.https.onRequest(async (req: any, res: any) => {
     const {
       userId,
       transactionInfo: {
@@ -19,13 +19,9 @@ module.exports = (context: Context) => {
 
     if (opEnum) {
       await processCreditsAndVisits(userId, transactionType, transactionId, opEnum);
-     res.sendStatus(200);
-    }
-
-    else{
+      res.sendStatus(200);
+    } else {
       res.sendStatus(400);
     }
-    
-    
   });
 };
