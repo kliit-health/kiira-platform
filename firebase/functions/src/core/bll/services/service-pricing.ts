@@ -3,7 +3,12 @@ export type PricingInfo = {
 }
 export type UserCredits = {
   readonly visits: number,
-  readonly credits?: Credits
+  readonly credits?: Credits,
+  readonly orgCredits?: OrganizationCredits
+}
+
+export type OrganizationCredits = {
+  readonly visits: number
 }
 
 export enum CreditType {
@@ -33,12 +38,21 @@ function hasCreditForRequiredServiceCreditType(userCredits: UserCredits, creditT
   return credits > 0;
 }
 
+function noCharge(): { dollars: number } {
+  return {dollars: 0};
+}
+
 export function servicePricing(
   userCredits: UserCredits,
   serviceCost: ServiceCost,
 ): PricingInfo {
+  const organizationCredits: number = userCredits?.orgCredits?.visits ?? 0;
+  if (organizationCredits >= serviceCost.costInVisitCredits) {
+    return noCharge();
+  }
+
   if (hasCreditForRequiredServiceCreditType(userCredits, serviceCost.type)) {
-    return {dollars: 0};
+    return noCharge();
   }
 
   const creditsOwed = serviceCost.costInVisitCredits - userCredits.visits;

@@ -30,6 +30,18 @@ describe("serviceCost", () => {
     assert.equal(pricing.dollars, 0);
   });
 
+  it("should be 0 when user has unlimited appointments.", () => {
+    const userCredits: UserCredits = {
+      visits: 0,
+      orgCredits: {visits: Infinity},
+    };
+    const pricing = servicePricing(
+      userCredits,
+      serviceCost({costInVisitCredits: 1}),
+    );
+    assert.equal(pricing.dollars, 0);
+  });
+
   it("should be credits * credit dollar value (2 * 60) when balance is zero", () => {
     const pricing = servicePricing(
       zeroCreditBalance,
@@ -40,7 +52,7 @@ describe("serviceCost", () => {
 
   it("when mental health credits are 1 and service is mental health, cost is 0", () => {
     const pricing = servicePricing(
-      creditBalance({mentalHealth: 1}),
+      creditBalance({therapySession: 1}),
       serviceCost({costInVisitCredits: 2, type: CreditType.TherapySession}),
     );
     assert.equal(pricing.dollars, 0);
@@ -49,12 +61,12 @@ describe("serviceCost", () => {
 
 interface CreditBalanceParams {
   visitCredits?: number;
-  mentalHealth?: number;
+  therapySession?: number;
 }
 
 function creditBalance(params: CreditBalanceParams): UserCredits {
   const visits: number = params.visitCredits ?? 0;
-  return {visits, credits: {[CreditType.TherapySession]: params.mentalHealth}};
+  return {visits, credits: {[CreditType.TherapySession]: params.therapySession}};
 }
 
 interface ServiceCostParams {
