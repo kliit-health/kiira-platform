@@ -4,6 +4,17 @@ export enum AppointmentType {
   HealthCheck = "Health Check"
 }
 
+export interface AppointmentValues {
+  readonly type: AppointmentType,
+  readonly visitCost: number;
+}
+
+
+export interface SubscriptionValues {
+  readonly credits : Credits
+}
+
+
 export enum CreditType {
 
   TherapySession = "TherapySession",
@@ -20,10 +31,6 @@ export interface UserBalance {
   credits: Credits;
 }
 
-export interface AppointmentValues {
-  readonly type: AppointmentType,
-  readonly visitCost: number;
-}
 
 export enum OperationType {
   Credit = "Credit",
@@ -32,5 +39,6 @@ export enum OperationType {
 
 export enum TransactionType {
   Appointment = "Appointment",
+  Subscription = "Subscription",
   None = ""
 }

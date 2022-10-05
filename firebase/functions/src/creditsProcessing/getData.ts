@@ -1,4 +1,4 @@
-import {AppointmentType, AppointmentValues, CreditType, UserBalance} from "./types";
+import {AppointmentType, AppointmentValues, SubscriptionValues,CreditType, UserBalance} from "./types";
 import {firestore} from "firebase-admin";
 
 
@@ -36,6 +36,25 @@ export async function getAppointmentValues(appointmentId: string): Promise<Appoi
     visitCost: data?.credits ?? 0,
   };
 }
+
+export async function getSubscriptionValues(subId: string): Promise<SubscriptionValues> {
+  const subDoc = await firestore()
+    .collection("plans")
+    .doc(subId)
+    .get();
+  
+  // Insert Error handle if there was no appointment with valid id. Meaning .data is undefined
+  const data = subDoc.data();
+  const therapyCreds : number = data?.credits[CreditType.TherapySession];
+  console.log("credits for the subscription : " + therapyCreds);
+  // Insert error handle for if the title or credits field for the appointment is undefined
+  // if(!data?.title){return;}
+
+  return {
+    credits: data?.credits ?? {[CreditType.TherapySession]:0},
+  };
+}
+
 export function getCreditTypeForAppointment(appointmentType: AppointmentType): CreditType {
   switch (appointmentType) {
     case AppointmentType.TherapySession: {
@@ -51,3 +70,4 @@ export function getCreditTypeForAppointment(appointmentType: AppointmentType): C
     }
   }
 }
+
