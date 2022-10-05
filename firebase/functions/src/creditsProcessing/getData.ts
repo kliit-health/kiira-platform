@@ -13,7 +13,6 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
 
   Object.entries(user?.credits).forEach(([key, value]) => {
     creditsObject[<CreditType>key] = <number>value;
-    //console.log(`Value ${value} is equal to ${<number>value} is it not a NaN? : ${isNaN(<number>value)}`)
   });
 
   return {
@@ -56,14 +55,11 @@ export function getCreditTypeForAppointment(appointmentType: AppointmentType): C
 }
 
 
-function getNewCreditInstance() : Credits{
-
+function getNewCreditInstance() : Credits {
   const creditsMap : Credits = {
     VideoVisit: 0,
-    TherapySession: 0
-  }
+    TherapySession: 0,
+  };
 
   return creditsMap;
-
-
 }
