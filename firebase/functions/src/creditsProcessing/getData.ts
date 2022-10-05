@@ -1,4 +1,4 @@
-import {AppointmentType, AppointmentValues, CreditType, UserBalance} from "./types";
+import {AppointmentType, AppointmentValues, Credits, CreditType, UserBalance} from "./types";
 import {firestore} from "firebase-admin";
 
 
@@ -9,12 +9,14 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
       .doc(uid)
       .get()).data();
 
-  const credit: number = user?.credits?.TherapySession;
+  const credits: Credits = {};
+
+  Object.entries(user?.credits).forEach(([key, value]) => {
+    credits[<CreditType>key] = <number>value;
+  });
 
   return {
-    credits: {
-      [CreditType.TherapySession]: credit ?? 0,
-    },
+    credits,
     visits: user?.visits ?? 0,
   };
 }
@@ -47,7 +49,7 @@ export function getCreditTypeForAppointment(appointmentType: AppointmentType): C
     }
 
     default: {
-      throw new Error("Invalid Appointment Type passed for Credit Type Maping");
+      throw new Error("Invalid Appointment Type passed for Credit Type Mapping");
     }
   }
 }

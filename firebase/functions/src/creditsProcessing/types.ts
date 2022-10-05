@@ -5,13 +5,13 @@ export enum AppointmentType {
 }
 
 export enum CreditType {
-
+  VideoVisit = "VideoVisit",
   TherapySession = "TherapySession",
 }
 
 export type Credits = {
   // For later forms of scalability
-  [key in CreditType]: number;
+  [key in CreditType]?: number;
   // MentalHealth : number;
 }
 

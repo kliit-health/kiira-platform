@@ -26,10 +26,9 @@ async function processBalancesForAppointments(userValues: UserBalance, appointme
       break;
     }
     case OperationType.Debit: {
+      finalBalance.credits[creditType]--;
       if (userValues.visits > 0) {
-        updateVisits(operationId, finalBalance, appointmentValues);
-      } else {
-        finalBalance.credits[creditType]--;
+        decrementVisits(operationId, finalBalance, appointmentValues);
       }
       break;
     }
@@ -37,12 +36,10 @@ async function processBalancesForAppointments(userValues: UserBalance, appointme
   return finalBalance;
 }
 
-function updateVisits(operationId: OperationType, finalBalance: UserBalance, appointmentValues: AppointmentValues) {
-  if (operationId == OperationType.Debit) {
-    finalBalance.visits -= appointmentValues.visitCost;
-    if (finalBalance.visits < 0) {
-      finalBalance.visits = 0;
-    }
+function decrementVisits(operationId: OperationType, finalBalance: UserBalance, appointmentValues: AppointmentValues) {
+  finalBalance.visits -= appointmentValues.visitCost;
+  if (finalBalance.visits < 0) {
+    finalBalance.visits = 0;
   }
 }
 
