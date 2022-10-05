@@ -11,7 +11,7 @@ export enum CreditType {
 
 export type Credits = {
   // For later forms of scalability
-  [key in CreditType]?: number;
+  [key in CreditType]: number;
   // MentalHealth : number;
 }
 

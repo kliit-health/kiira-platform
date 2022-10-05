@@ -9,14 +9,15 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
       .doc(uid)
       .get()).data();
 
-  const credits: Credits = {};
+  const creditsObject = getNewCreditInstance();
 
   Object.entries(user?.credits).forEach(([key, value]) => {
-    credits[<CreditType>key] = <number>value;
+    creditsObject[<CreditType>key] = <number>value;
+    //console.log(`Value ${value} is equal to ${<number>value} is it not a NaN? : ${isNaN(<number>value)}`)
   });
 
   return {
-    credits,
+    credits: <Credits>creditsObject,
     visits: user?.visits ?? 0,
   };
 }
@@ -45,11 +46,24 @@ export function getCreditTypeForAppointment(appointmentType: AppointmentType): C
     }
 
     case AppointmentType.VideoVisit: {
-      return CreditType.TherapySession;
+      return CreditType.VideoVisit;
     }
 
     default: {
       throw new Error("Invalid Appointment Type passed for Credit Type Mapping");
     }
   }
+}
+
+
+function getNewCreditInstance() : Credits{
+
+  const creditsMap : Credits = {
+    VideoVisit: 0,
+    TherapySession: 0
+  }
+
+  return creditsMap;
+
+
 }
