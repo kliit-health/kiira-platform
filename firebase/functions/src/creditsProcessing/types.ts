@@ -16,8 +16,8 @@ export type Credits = {
 }
 
 export interface UserBalance {
-  visits: number;
-  credits: Credits;
+  readonly visits: number;
+  readonly credits: Credits;
 }
 
 export interface AppointmentValues {
