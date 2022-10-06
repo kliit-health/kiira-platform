@@ -1,4 +1,4 @@
-namespace Kiira.Data.Firestore;
+namespace Kiira.Data.Firebase;
 
 public class FirestoreServiceConfig
 {
