@@ -22,6 +22,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Kiira.Core\Kiira.Core.csproj" />
+      <ProjectReference Include="..\..\src\Kiira.Core\Kiira.Core.csproj" />
     </ItemGroup>
 
 </Project>
