@@ -3,7 +3,12 @@ import * as getData from "./getData";
 import {getAppointmentValues, getCreditTypeForAppointment} from "./getData";
 import * as updateData from "./updateData";
 
-export async function processCreditsAndVisits(userId: string, transactionType: TransactionType, transactionId: string, operation: OperationType) {
+export async function processCreditsAndVisits(
+  userId: string,
+  transactionType: TransactionType,
+  transactionId: string,
+  operation: OperationType,
+) {
   const userBalances = await getData.getUserValues(userId);
 
   const appointmentVal = await getAppointmentValues(transactionId);
@@ -13,26 +18,33 @@ export async function processCreditsAndVisits(userId: string, transactionType: T
   await updateData.updateUserBalances(userId, updatedUserBalance);
 }
 
-async function processBalancesForAppointments(userValues: UserBalance, appointmentValues: AppointmentValues, operationId: OperationType): Promise<UserBalance> {
+export function processBalancesForAppointments(
+  currentBalance: UserBalance,
+  appointmentValues: AppointmentValues,
+  operationId: OperationType,
+): UserBalance {
   const creditType = getCreditTypeForAppointment(appointmentValues.type);
 
-  const finalBalance: UserBalance = {
-    visits: userValues.visits,
-    credits: userValues.credits,
+  const updatedBalance: UserBalance = {
+    visits: currentBalance.visits,
+    credits: currentBalance.credits,
   };
 
   switch (operationId) {
     case OperationType.Credit: {
-      finalBalance.credits[creditType]++;
+      updatedBalance.credits[creditType]++;
       break;
     }
     case OperationType.Debit: {
-      decrementCredits(finalBalance, creditType);
-      decrementVisits(operationId, finalBalance, appointmentValues);
+      if (appointmentValues.visitCost <= currentBalance.visits) {
+        decrementVisits(operationId, updatedBalance, appointmentValues);
+      } else {
+        decrementCredits(updatedBalance, creditType);
+      }
       break;
     }
   }
-  return finalBalance;
+  return updatedBalance;
 }
 
 function decrementCredits(finalBalance: UserBalance, creditType: CreditType) {

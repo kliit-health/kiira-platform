@@ -20,6 +20,7 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
     visits: user?.visits ?? 0,
   };
 }
+
 export async function getAppointmentValues(appointmentId: string): Promise<AppointmentValues> {
   const appointmentDoc = await firestore()
     .collection("appointmentTypes")
@@ -38,6 +39,7 @@ export async function getAppointmentValues(appointmentId: string): Promise<Appoi
     visitCost: data?.credits ?? 0,
   };
 }
+
 export function getCreditTypeForAppointment(appointmentType: AppointmentType): CreditType {
   switch (appointmentType) {
     case AppointmentType.TherapySession: {
@@ -55,8 +57,8 @@ export function getCreditTypeForAppointment(appointmentType: AppointmentType): C
 }
 
 
-function getNewCreditInstance() : Credits {
-  const creditsMap : Credits = {
+function getNewCreditInstance(): Credits {
+  const creditsMap: Credits = {
     VideoVisit: 0,
     TherapySession: 0,
   };

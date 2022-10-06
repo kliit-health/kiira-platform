@@ -1,27 +1,35 @@
 import {OperationType, TransactionType} from "./types";
 import {Context} from "../ioc";
-import {enumeration} from "purify-ts";
+import {EitherAsync, enumeration, GetType} from "purify-ts";
 import {processCreditsAndVisits} from "./util";
+import {Interface, NonEmptyString} from "purify-ts-extra-codec";
 
-module.exports = (context: Context) => {
-  return context.functions.https.onRequest(async (req: any, res: any) => {
-    const {
-      userId,
-      transactionInfo: {
-        type: aType,
-        id: transactionId,
-        op: operation,
-      },
-    } = req.body;
+const Request = Interface({
+  userId: NonEmptyString,
+  transactionInfo: Interface({
+    type: enumeration(TransactionType),
+    id: NonEmptyString,
+    operation: enumeration(OperationType),
+  }),
+});
 
-    const transactionType = TransactionType[aType as keyof typeof TransactionType];
-    const opEnum = enumeration(OperationType).decode(operation).toMaybe().extract();
+type Request = GetType<typeof Request>
 
-    if (opEnum) {
-      await processCreditsAndVisits(userId, transactionType, transactionId, opEnum);
-      res.sendStatus(200);
-    } else {
+module.exports = (context: Context) => context.functions.https.onRequest(async (req: any, res: any) =>
+  await EitherAsync<string, void>(async ({liftEither, throwE}) => {
+      const {userId, transactionInfo}: Request = await liftEither(Request.decode(req.body));
+      const {type, id, operation} = transactionInfo;
+      try {
+        await processCreditsAndVisits(userId, type, id, operation);
+      } catch (e: unknown) {
+        throwE(JSON.stringify(e));
+      }
+    },
+  ).caseOf({
+    Right: () => res.sendStatus(200),
+    Left: error => {
+      context.logger.info(error);
       res.sendStatus(400);
-    }
-  });
-};
+    },
+  }),
+);
