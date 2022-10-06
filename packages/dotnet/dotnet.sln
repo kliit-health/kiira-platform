@@ -1,0 +1,21 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EDE25061-0D43-4627-8370-144DFAA38C1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiira.Core", "Kiira.Core\Kiira.Core.csproj", "{B1B28988-6B8D-4E6C-8245-D7CB0BAD0DEB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B1B28988-6B8D-4E6C-8245-D7CB0BAD0DEB} = {EDE25061-0D43-4627-8370-144DFAA38C1A}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1B28988-6B8D-4E6C-8245-D7CB0BAD0DEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1B28988-6B8D-4E6C-8245-D7CB0BAD0DEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1B28988-6B8D-4E6C-8245-D7CB0BAD0DEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1B28988-6B8D-4E6C-8245-D7CB0BAD0DEB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
