@@ -49,13 +49,11 @@ export async function processCreditsAndVisits(
     case TransactionType.Appointment: {
       const appointmentVal = await getAppointmentValues(transactionId);
       remainingBalance = calculateRemainingBalances(appointmentVal, currentBalance, operation);
-
       break;
     }
 
     case TransactionType.Subscription: {
       const subscriptionVal = await getSubscriptionValues(transactionId);
-
       remainingBalance = await processBalancesForSubscriptions(currentBalance, subscriptionVal, operation);
       break;
     }
@@ -86,7 +84,7 @@ export function processBalancesForAppointments(
       break;
     }
   }
-  return {visits, credits};
+  return {credits, visits};
 }
 
 async function processBalancesForSubscriptions(
@@ -94,43 +92,27 @@ async function processBalancesForSubscriptions(
   subValues: SubscriptionValues,
   operationId: OperationType,
 ): Promise<UserBalance> {
-  // const creditType = getData.getCreditTypeFromSubscriptions(subValues.type);
-
-  let finalBalance: UserBalance = {
-    visits: userValues.visits,
-    credits: userValues.credits,
-  };
+  let {credits, visits} = userValues;
 
   switch (operationId) {
     case OperationType.Credit: {
-      finalBalance.credits = addCreditsFromSubscription(finalBalance, subValues);
+      credits = addCreditsFromSubscription(credits, subValues);
       break;
     }
     case OperationType.Debit: {
-      console.log("Scenario not implemented yet!");
-      // Insert a more robust/custom solution here later
-      /*
-      finalBalance.credits[creditType]-=subValues.creditAmount;
-      if(finalBalance.credits[creditType] < 0) {
-        finalBalance.credits[creditType] = 0;
-      }
-      */
+      console.log("Scenario not implemented!");
       break;
     }
   }
-  return finalBalance;
+  return {credits, visits};
 }
 
-function addCreditsFromSubscription(finalBalance: UserBalance, subValues: SubscriptionValues): Credits {
-  const finalCredits = finalBalance.credits;
-  const keys: string[] = Object.keys(subValues.credits);
-
-  keys.forEach(element => {
-    const creditType = CreditType[element as keyof typeof CreditType];
-    const creditValue: number = subValues.credits[creditType];
-    console.log(`adding credit type ${element} with value ${creditValue}`);
-    finalBalance.credits[creditType] += creditValue;
+function addCreditsFromSubscription(credits: Credits, subValues: SubscriptionValues): Credits {
+  const entries = Object.entries(subValues.credits);
+  entries.forEach(([key, value]) => {
+    console.log(`adding credit type ${key} with value ${value}`);
+    credits[<CreditType>key] += value;
   });
 
-  return finalCredits;
+  return credits;
 }
