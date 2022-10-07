@@ -40,6 +40,7 @@ module.exports = (context: Context) => {
     });
 
     function badRequest(message: string) {
+      context.logger.info("Bad request", {error: message});
       res.status(400).send({error: message});
     }
   });

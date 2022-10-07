@@ -23,25 +23,29 @@ async function updateExpertAppointments(
   expertDocument: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>,
   uid: any,
   expertData: FirebaseFirestore.DocumentData,
-  response: any,
+  appointmentData: any,
 ): Promise<void> {
   await expertDocument.set(
     {
       history: {
-        [uid]: [...(expertData.history[uid] || []), response],
+        [uid]: [...(expertData.history[uid] || []), appointmentData],
       },
     },
     {merge: true},
   );
 }
 
-function initializeExpertAppointments(expertId: any, uid: any, response: any): Promise<FirebaseFirestore.WriteResult> {
+function initializeExpertAppointments(
+  expertId: any,
+  uid: any,
+  appointmentData: any,
+): Promise<FirebaseFirestore.WriteResult> {
   return admin
     .firestore()
     .collection("appointments")
     .doc(expertId)
     .set({
-      history: {[uid]: [response]},
+      history: {[uid]: [appointmentData]},
     });
 }
 
@@ -62,17 +66,17 @@ function getFirebaseExpertAppointments(expertId: any): FirebaseFirestore.Documen
 function updateFirebaseUserAppointments(
   document: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>,
   data: FirebaseFirestore.DocumentData,
-  response: any,
+  appointmentData: any,
 ): Promise<FirebaseFirestore.WriteResult> {
   return document.set(
-    {history: [...data.history, response]},
+    {history: [...data.history, appointmentData]},
     {merge: true},
   );
 }
 
-function initializeFirebaseUserAppointments(uid: any, response: any): Promise<FirebaseFirestore.WriteResult> {
+function initializeFirebaseUserAppointments(uid: any, appointmentData: any): Promise<FirebaseFirestore.WriteResult> {
   return getFirebaseUserAppointments(uid)
-    .set({history: [response]});
+    .set({history: [appointmentData]});
 }
 
 function createAppointmentFields(appointment: Appointment) {
@@ -227,18 +231,17 @@ module.exports = (context: Context) => {
         if (checkTime.valid) {
           await bookAppointment(availabilityQuery, appointmentType, patient, expert);
           await processCreditsAndVisits(uid, TransactionType.Appointment, appointmentTypeId, OperationType.Debit);
+          res.sendStatus(200);
         } else {
           res.status(200).send({error: checkTime.error});
-          return;
         }
-        return res.sendStatus(200);
       } else {
         res.sendStatus(401).send("Unauthorized");
       }
     } catch (error) {
       console.error(error);
       res.sendStatus(401);
-      return {available: false};
+      return;
     }
   });
 };
