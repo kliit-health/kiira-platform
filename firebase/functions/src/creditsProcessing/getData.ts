@@ -11,9 +11,11 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
 
   const creditsObject: Credits = getNewCreditInstance();
 
-  Object.entries(user?.credits).forEach(([key, value]) => {
-    creditsObject[<CreditType>key] = <number>value;
-  });
+  if (user?.credits) {
+    Object.entries(user.credits).forEach(([key, value]) => {
+      creditsObject[<CreditType>key] = <number>value;
+    });
+  }
 
   return {
     credits: creditsObject,
