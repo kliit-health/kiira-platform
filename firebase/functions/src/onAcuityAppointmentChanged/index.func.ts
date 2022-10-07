@@ -52,7 +52,11 @@ function verifyWebhookRequest(acuityApiKey: string, hash: string | undefined, bu
   return calculatedHash === hash;
 }
 
-function syncAppointmentToElation(elation: ElationApi, action: string, appt: AcuityAppointment): EitherAsync<Error, void> {
+function syncAppointmentToElation(
+  elation: ElationApi,
+  action: string,
+  appt: AcuityAppointment,
+): EitherAsync<Error, void> {
   switch (action) {
     case "appointment.scheduled":
     case "scheduled":
@@ -76,7 +80,11 @@ function createAppointmentAsync(elation: ElationApi, appt: AcuityAppointment): E
     .void();
 }
 
-function updateAppointmentAsync(elation: ElationApi, id: AcuityAppointmentId, datetime: string): EitherAsync<Error, void> {
+function updateAppointmentAsync(
+  elation: ElationApi,
+  id: AcuityAppointmentId,
+  datetime: string,
+): EitherAsync<Error, void> {
   return getKiiraAppointmentMappingAsync(id)
     .chain(value => elation.updateAppointmentAsync(value.elationId, datetime))
     .ifRight(() => logger.info("Elation appointment rescheduled successfully."))
@@ -98,7 +106,10 @@ function cancelAppointmentAsync(elation: ElationApi, id: AcuityAppointmentId): E
     });
 }
 
-function createElationAppointmentAsync(elation: ElationApi, appt: AcuityAppointment): EitherAsync<Error, ElationAppointmentId> {
+function createElationAppointmentAsync(
+  elation: ElationApi,
+  appt: AcuityAppointment,
+): EitherAsync<Error, ElationAppointmentId> {
   return EitherAsync(async ({fromPromise}) => {
       const invitation = await fromPromise(kiira.getOrCreateInvitationAsync(appt, logger));
       const physician = await fromPromise(getPhysicianAsync(elation, appt));

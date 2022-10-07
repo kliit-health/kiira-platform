@@ -64,7 +64,7 @@ export interface AcuityAppointment {
   readonly datetime: string;
   readonly duration: string;
   readonly error?: string;
-  readonly forms: [AcuityForm]
+  readonly forms: [AcuityForm];
 }
 
 export type AcuityForm = { readonly id: number, readonly values: [{ fieldID: number, value: string }] }
