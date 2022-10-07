@@ -1,4 +1,4 @@
-import {GetType, Maybe, MaybeAsync, optional, string} from "purify-ts";
+import {enumeration, GetType, Maybe, MaybeAsync, optional, record, string} from "purify-ts";
 import {CreditType, UserCredits} from "../core/bll/services/service-pricing";
 import {FirestoreDb} from "./firestore-db";
 import {UserId, UserLookup} from "../core/adapters/user-lookup";
@@ -35,7 +35,7 @@ function orgCredits(user: User): number | undefined {
 
 const codec = Interface({
   visits: Integer,
-  credits: optional(Interface({[CreditType.TherapySession]: Integer})),
+  credits: optional(record(enumeration(CreditType), Integer)),
   planId: optional(string),
   organizationId: optional(string),
   plan: optional(Interface({id: string})),

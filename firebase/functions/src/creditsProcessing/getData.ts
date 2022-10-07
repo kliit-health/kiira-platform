@@ -20,6 +20,7 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
     visits: user?.visits ?? 0,
   };
 }
+
 export async function getAppointmentValues(appointmentId: string): Promise<AppointmentValues> {
   const appointmentDoc = await firestore()
     .collection("appointmentTypes")
@@ -47,7 +48,7 @@ export async function getSubscriptionValues(subId: string): Promise<Subscription
 
   // Insert Error handle if there was no appointment with valid id. Meaning .data is undefined
   const data = subDoc.data();
-  const therapyCreds : number = data?.credits[CreditType.TherapySession];
+  const therapyCreds: number = data?.credits[CreditType.TherapySession];
   console.log("credits for the subscription : " + therapyCreds);
   // Insert error handle for if the title or credits field for the appointment is undefined
   // if(!data?.title){return;}

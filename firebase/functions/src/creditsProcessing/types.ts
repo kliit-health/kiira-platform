@@ -11,7 +11,7 @@ export interface AppointmentValues {
 
 
 export interface SubscriptionValues {
-  readonly credits : Credits
+  readonly credits: Credits;
 }
 
 
@@ -27,8 +27,8 @@ export type Credits = {
 }
 
 export interface UserBalance {
-  visits: number;
-  credits: Credits;
+  readonly visits: number;
+  readonly credits: Credits;
 }
 
 
