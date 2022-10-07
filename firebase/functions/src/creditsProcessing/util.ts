@@ -1,6 +1,13 @@
-import {AppointmentValues, Credits, CreditType, OperationType, TransactionType, UserBalance} from "./types";
-import * as getData from "./getData";
-import {getAppointmentValues, getCreditTypeForAppointment} from "./getData";
+import {
+  AppointmentValues,
+  Credits,
+  CreditType,
+  OperationType,
+  SubscriptionValues,
+  TransactionType,
+  UserBalance,
+} from "./types";
+import {getAppointmentValues, getCreditTypeForAppointment, getSubscriptionValues, getUserValues} from "./getData";
 import * as updateData from "./updateData";
 
 function replaceIn<T>(o: { [s: string]: T } | ArrayLike<T>, k: string, v: T): { [p: string]: T } {
@@ -36,9 +43,23 @@ export async function processCreditsAndVisits(
   transactionId: string,
   operation: OperationType,
 ) {
-  const currentBalance = await getData.getUserValues(userId);
-  const appointmentVal = await getAppointmentValues(transactionId);
-  const remainingBalance = calculateRemainingBalances(appointmentVal, currentBalance, operation);
+  const currentBalance = await getUserValues(userId);
+  let remainingBalance = currentBalance;
+  switch (transactionType) {
+    case TransactionType.Appointment: {
+      const appointmentVal = await getAppointmentValues(transactionId);
+      remainingBalance = calculateRemainingBalances(appointmentVal, currentBalance, operation);
+
+      break;
+    }
+
+    case TransactionType.Subscription: {
+      const subscriptionVal = await getSubscriptionValues(transactionId);
+
+      remainingBalance = await processBalancesForSubscriptions(currentBalance, subscriptionVal, operation);
+      break;
+    }
+  }
   await updateData.updateUserBalances(userId, remainingBalance);
 }
 
@@ -66,4 +87,50 @@ export function processBalancesForAppointments(
     }
   }
   return {visits, credits};
+}
+
+async function processBalancesForSubscriptions(
+  userValues: UserBalance,
+  subValues: SubscriptionValues,
+  operationId: OperationType,
+): Promise<UserBalance> {
+  // const creditType = getData.getCreditTypeFromSubscriptions(subValues.type);
+
+  let finalBalance: UserBalance = {
+    visits: userValues.visits,
+    credits: userValues.credits,
+  };
+
+  switch (operationId) {
+    case OperationType.Credit: {
+      finalBalance.credits = addCreditsFromSubscription(finalBalance, subValues);
+      break;
+    }
+    case OperationType.Debit: {
+      console.log("Scenario not implemented yet!");
+      // Insert a more robust/custom solution here later
+      /*
+      finalBalance.credits[creditType]-=subValues.creditAmount;
+      if(finalBalance.credits[creditType] < 0) {
+        finalBalance.credits[creditType] = 0;
+      }
+      */
+      break;
+    }
+  }
+  return finalBalance;
+}
+
+function addCreditsFromSubscription(finalBalance: UserBalance, subValues: SubscriptionValues): Credits {
+  const finalCredits = finalBalance.credits;
+  const keys: string[] = Object.keys(subValues.credits);
+
+  keys.forEach(element => {
+    const creditType = CreditType[element as keyof typeof CreditType];
+    const creditValue: number = subValues.credits[creditType];
+    console.log(`adding credit type ${element} with value ${creditValue}`);
+    finalBalance.credits[creditType] += creditValue;
+  });
+
+  return finalCredits;
 }
