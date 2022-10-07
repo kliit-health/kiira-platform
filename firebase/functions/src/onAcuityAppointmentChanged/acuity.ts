@@ -14,21 +14,28 @@ function authorizedAcuity(secrets: AcuitySecrets) {
   });
 }
 
-export function getAppointmentAsync(secrets: AcuitySecrets, id: string, logger: Logger): EitherAsync<Error, AcuityAppointment> {
+export function getAppointmentAsync(
+  secrets: AcuitySecrets,
+  id: string,
+  logger: Logger,
+): EitherAsync<Error, AcuityAppointment> {
   return EitherAsync(() => {
     return new Promise((resolve, reject) => {
       logger.info(`Requesting acuity appointment ${id}.`);
 
-      authorizedAcuity(secrets).request(`/appointments/${id}`, (e: unknown, response: unknown, appt: AcuityAppointment) => {
-        if (e) {
-          reject(reason("Appointment request failed.", {appointmentId: id, error: e}));
-        } else if (appt.error) {
-          reject(reason("Appointment response error.", {appointmentId: id, error: appt.error}));
-        } else {
-          logger.info("Appointment found.", {appointment: appt});
-          resolve(appt);
-        }
-      });
+      authorizedAcuity(secrets).request(
+        `/appointments/${id}`,
+        (e: unknown, response: unknown, appt: AcuityAppointment) => {
+          if (e) {
+            reject(reason("Appointment request failed.", {appointmentId: id, error: e}));
+          } else if (appt.error) {
+            reject(reason("Appointment response error.", {appointmentId: id, error: appt.error}));
+          } else {
+            logger.info("Appointment found.", {appointment: appt});
+            resolve(appt);
+          }
+        },
+      );
     });
   });
 }

@@ -76,7 +76,7 @@ it("", () => {
   const appointmentVal: AppointmentValues = {type: AppointmentType.VideoVisit, visitCost: 3};
   const initialBalance: UserBalance = {
     visits: 1,
-    credits: {[CreditType.VideoVisit]: 1, [CreditType.TherapySession]: 1},
+    credits: {[CreditType.VideoVisit]: 1, [CreditType.TherapySession]: 1, [CreditType.HealthCheck]: 0},
   };
   const first: UserBalance = calculateRemainingBalances(
     appointmentVal,

@@ -9,7 +9,7 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
       .doc(uid)
       .get()).data();
 
-  const creditsObject : Credits = getNewCreditInstance();
+  const creditsObject: Credits = getNewCreditInstance();
 
   Object.entries(user?.credits).forEach(([key, value]) => {
     creditsObject[<CreditType>key] = <number>value;
@@ -83,7 +83,7 @@ function getNewCreditInstance(): Credits {
   const creditsMap: Credits = {
     VideoVisit: 0,
     TherapySession: 0,
-    HealthCheck : 0,
+    HealthCheck: 0,
   };
 
   return creditsMap;

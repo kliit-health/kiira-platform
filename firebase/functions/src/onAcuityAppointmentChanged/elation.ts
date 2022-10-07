@@ -133,7 +133,8 @@ function getPatient(
       const results: [ElationPatient] = data.results.filter((value: ElationPatient) => !value.deleted_date);
       const matchEither = Maybe.fromFalsy<ElationPatient>(matchByEmail(results, email))
         .alt(Maybe.fromFalsy(matchByInvitationId(results, id)))
-        .toEither(error("Found existing patient with matching first and last name but neither email nor invitation id match."))
+        .toEither(error(
+          "Found existing patient with matching first and last name but neither email nor invitation id match."))
         .ifRight(value => logger.info("Patient found.", value));
 
       return liftEither(matchEither);
@@ -170,7 +171,11 @@ function getPhysician(
     .ifRight(value => logger.info("Elation physician found.", value));
 }
 
-function postAppointment(auth: ElationAuth, elationAppt: ElationAppointment, logger: Logger): EitherAsync<Error, ElationAppointmentId> {
+function postAppointment(
+  auth: ElationAuth,
+  elationAppt: ElationAppointment,
+  logger: Logger,
+): EitherAsync<Error, ElationAppointmentId> {
   const config = headers(auth);
 
   return axiosPromiseAsEitherAsync(() => {

@@ -19,7 +19,12 @@ const BookingRequest = Interface({
 
 type BookingRequest = GetType<typeof BookingRequest>
 
-async function updateExpertAppointments(expertDocument: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, uid: any, expertData: FirebaseFirestore.DocumentData, response: any): Promise<void> {
+async function updateExpertAppointments(
+  expertDocument: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>,
+  uid: any,
+  expertData: FirebaseFirestore.DocumentData,
+  response: any,
+): Promise<void> {
   await expertDocument.set(
     {
       history: {
@@ -54,7 +59,11 @@ function getFirebaseExpertAppointments(expertId: any): FirebaseFirestore.Documen
     .doc(expertId);
 }
 
-function updateFirebaseUserAppointments(document: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, data: FirebaseFirestore.DocumentData, response: any): Promise<FirebaseFirestore.WriteResult> {
+function updateFirebaseUserAppointments(
+  document: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>,
+  data: FirebaseFirestore.DocumentData,
+  response: any,
+): Promise<FirebaseFirestore.WriteResult> {
   return document.set(
     {history: [...data.history, response]},
     {merge: true},
@@ -110,7 +119,13 @@ function createPatientFields(patient: any) {
   };
 }
 
-function firestoreAppointmentEntry(appointmentType: any, patient: any, expert: any, appointment: Appointment, appointmentId: string) {
+function firestoreAppointmentEntry(
+  appointmentType: any,
+  patient: any,
+  expert: any,
+  appointment: Appointment,
+  appointmentId: string,
+) {
   return {
     appointmentType,
     ...createPatientFields(patient),
@@ -124,9 +139,20 @@ function firestoreAppointmentEntry(appointmentType: any, patient: any, expert: a
   };
 }
 
-async function bookAppointment(appointment: Appointment, appointmentType: any, patient: any, expert: any): Promise<void> {
+async function bookAppointment(
+  appointment: Appointment,
+  appointmentType: any,
+  patient: any,
+  expert: any,
+): Promise<void> {
   const acuityAppointmentId = (await acuityBookAppointment(appointment)).body.id;
-  const newAppointmentEntry = firestoreAppointmentEntry(appointmentType, patient, expert, appointment, acuityAppointmentId);
+  const newAppointmentEntry = firestoreAppointmentEntry(
+    appointmentType,
+    patient,
+    expert,
+    appointment,
+    acuityAppointmentId,
+  );
 
   const document = getFirebaseUserAppointments(patient.uid);
   const prev = await document.get();

@@ -1,4 +1,5 @@
 import firebaseFetchAdmin = require("firebase-admin");
+
 module.exports = (collectionName: any, conditions = [], limit = 20000) =>
   new Promise((resolve, reject) =>
     (async function() {

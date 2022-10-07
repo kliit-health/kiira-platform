@@ -23,6 +23,7 @@ export type Credits = {
 export interface SubscriptionValues {
   readonly credits: Credits;
 }
+
 export interface UserBalance {
   readonly visits: number;
   readonly credits: Credits;
@@ -39,7 +40,6 @@ export enum TransactionType {
   Subscription = "Subscription",
   None = ""
 }
-
 
 
 export type OrganizationCredits = {

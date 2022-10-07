@@ -8,7 +8,10 @@ import {Logger} from "../logging";
 import Firestore = firestore.Firestore;
 import WriteResult = firestore.WriteResult;
 
-export function getAppointmentMappingByAcuityId(id: AcuityAppointmentId, logger: Logger): EitherAsync<Error, KiiraAppointment> {
+export function getAppointmentMappingByAcuityId(
+  id: AcuityAppointmentId,
+  logger: Logger,
+): EitherAsync<Error, KiiraAppointment> {
   const findAppointmentById = admin.firestore()
     .collection("appointment")
     .where("acuityId", "==", id)
@@ -140,7 +143,10 @@ export function getPhysicianAsync(calendarId: number, logger: Logger): EitherAsy
     .ifRight(value => logger.info("Physician found.", value));
 }
 
-export function getOrCreateInvitationAsync(appt: AcuityAppointment, logger: Logger): EitherAsync<Error, KiiraInvitation> {
+export function getOrCreateInvitationAsync(
+  appt: AcuityAppointment,
+  logger: Logger,
+): EitherAsync<Error, KiiraInvitation> {
   return getInvitation(appt.email, logger).alt(createInvitation(appt, logger));
 }
 

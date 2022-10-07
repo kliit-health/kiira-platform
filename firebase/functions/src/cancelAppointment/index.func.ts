@@ -25,7 +25,10 @@ function removeAppointmentFromHistory(appointments: FirebaseFirestore.DocumentDa
   return {removed, filtered};
 }
 
-function firebaseUpdateAppointments(document: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, appointments: FirebaseFirestore.DocumentData): Promise<FirebaseFirestore.WriteResult> {
+function firebaseUpdateAppointments(
+  document: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>,
+  appointments: FirebaseFirestore.DocumentData,
+): Promise<FirebaseFirestore.WriteResult> {
   return document.set(
     {history: [...(appointments.history || [])]},
     {merge: true},
@@ -39,7 +42,11 @@ function getExpertAppointments(expert: string): FirebaseFirestore.DocumentRefere
     .doc(expert);
 }
 
-function firebaseUpdateExpertAppointments(expertDocument: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, uid: string, filtered: any): Promise<FirebaseFirestore.WriteResult> {
+function firebaseUpdateExpertAppointments(
+  expertDocument: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>,
+  uid: string,
+  filtered: any,
+): Promise<FirebaseFirestore.WriteResult> {
   return expertDocument.set(
     {history: {[uid]: [...(filtered || [])]}},
     {merge: true},
@@ -79,7 +86,12 @@ module.exports = () =>
               const {removed, filtered}: any = removeAppointmentFromHistory(appointments, appointmentId);
               appointments.history = filtered;
               await firebaseUpdateAppointments(document, appointments);
-              await processCreditsAndVisits(patientId, TransactionType.Appointment, removed.appointmentType.id, OperationType.Credit);
+              await processCreditsAndVisits(
+                patientId,
+                TransactionType.Appointment,
+                removed.appointmentType.id,
+                OperationType.Credit,
+              );
             }
 
             const expertDocument = getExpertAppointments(expertId);
