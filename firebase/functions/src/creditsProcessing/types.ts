@@ -9,23 +9,20 @@ export interface AppointmentValues {
   readonly visitCost: number;
 }
 
-
-export interface SubscriptionValues {
-  readonly credits: Credits;
-}
-
-
 export enum CreditType {
+  HealthCheck = "HealthCheck",
   VideoVisit = "VideoVisit",
   TherapySession = "TherapySession",
 }
 
 export type Credits = {
-  // For later forms of scalability
   [key in CreditType]: number;
-  // MentalHealth : number;
-}
+};
 
+
+export interface SubscriptionValues {
+  readonly credits: Credits;
+}
 export interface UserBalance {
   readonly visits: number;
   readonly credits: Credits;
@@ -42,3 +39,10 @@ export enum TransactionType {
   Subscription = "Subscription",
   None = ""
 }
+
+
+
+export type OrganizationCredits = {
+  readonly visits: number
+}
+

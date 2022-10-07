@@ -100,7 +100,7 @@ async function processBalancesForSubscriptions(
       break;
     }
     case OperationType.Debit: {
-      console.log("Scenario not implemented!");
+      console.error("Scenario not implemented!");
       break;
     }
   }

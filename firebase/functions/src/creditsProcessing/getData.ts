@@ -9,14 +9,14 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
       .doc(uid)
       .get()).data();
 
-  const creditsObject = getNewCreditInstance();
+  const creditsObject : Credits = getNewCreditInstance();
 
   Object.entries(user?.credits).forEach(([key, value]) => {
     creditsObject[<CreditType>key] = <number>value;
   });
 
   return {
-    credits: <Credits>creditsObject,
+    credits: creditsObject,
     visits: user?.visits ?? 0,
   };
 }
@@ -68,6 +68,10 @@ export function getCreditTypeForAppointment(appointmentType: AppointmentType): C
       return CreditType.VideoVisit;
     }
 
+    case AppointmentType.HealthCheck: {
+      return CreditType.HealthCheck;
+    }
+
     default: {
       throw new Error("Invalid Appointment Type passed for Credit Type Mapping");
     }
@@ -79,6 +83,7 @@ function getNewCreditInstance(): Credits {
   const creditsMap: Credits = {
     VideoVisit: 0,
     TherapySession: 0,
+    HealthCheck : 0,
   };
 
   return creditsMap;
