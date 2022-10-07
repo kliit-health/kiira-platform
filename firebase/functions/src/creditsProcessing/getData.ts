@@ -1,4 +1,4 @@
-import {AppointmentType, AppointmentValues, SubscriptionValues,CreditType, UserBalance} from "./types";
+import {AppointmentType, AppointmentValues, Credits, CreditType, SubscriptionValues, UserBalance} from "./types";
 import {firestore} from "firebase-admin";
 
 
@@ -9,12 +9,14 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
       .doc(uid)
       .get()).data();
 
-  const credit: number = user?.credits?.TherapySession;
+  const creditsObject = getNewCreditInstance();
+
+  Object.entries(user?.credits).forEach(([key, value]) => {
+    creditsObject[<CreditType>key] = <number>value;
+  });
 
   return {
-    credits: {
-      [CreditType.TherapySession]: credit ?? 0,
-    },
+    credits: <Credits>creditsObject,
     visits: user?.visits ?? 0,
   };
 }
@@ -42,7 +44,7 @@ export async function getSubscriptionValues(subId: string): Promise<Subscription
     .collection("plans")
     .doc(subId)
     .get();
-  
+
   // Insert Error handle if there was no appointment with valid id. Meaning .data is undefined
   const data = subDoc.data();
   const therapyCreds : number = data?.credits[CreditType.TherapySession];
@@ -51,7 +53,7 @@ export async function getSubscriptionValues(subId: string): Promise<Subscription
   // if(!data?.title){return;}
 
   return {
-    credits: data?.credits ?? {[CreditType.TherapySession]:0},
+    credits: data?.credits ?? {[CreditType.TherapySession]: 0},
   };
 }
 
@@ -62,12 +64,21 @@ export function getCreditTypeForAppointment(appointmentType: AppointmentType): C
     }
 
     case AppointmentType.VideoVisit: {
-      return CreditType.TherapySession;
+      return CreditType.VideoVisit;
     }
 
     default: {
-      throw new Error("Invalid Appointment Type passed for Credit Type Maping");
+      throw new Error("Invalid Appointment Type passed for Credit Type Mapping");
     }
   }
 }
 
+
+function getNewCreditInstance(): Credits {
+  const creditsMap: Credits = {
+    VideoVisit: 0,
+    TherapySession: 0,
+  };
+
+  return creditsMap;
+}

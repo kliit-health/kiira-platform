@@ -16,7 +16,7 @@ export interface SubscriptionValues {
 
 
 export enum CreditType {
-
+  VideoVisit = "VideoVisit",
   TherapySession = "TherapySession",
 }
 

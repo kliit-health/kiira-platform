@@ -14,6 +14,7 @@ try {
 // create context for dependency injection
 const context: Context = {
   functions: functions,
+  firestore: admin.firestore(),
   logger: <Logger>{
     info(message: string, data?: unknown): void {
       if (data) {
