@@ -57,6 +57,12 @@ export async function processCreditsAndVisits(
       remainingBalance = await processBalancesForSubscriptions(currentBalance, subscriptionVal, operation);
       break;
     }
+
+    case TransactionType.Renewal: {
+      const subscriptionVal = await getSubscriptionValues(transactionId);
+      remainingBalance = await processBalancesForRenewal(currentBalance, subscriptionVal);
+      break;
+    }
   }
   await updateData.updateUserBalances(userId, remainingBalance);
 }
@@ -107,11 +113,45 @@ async function processBalancesForSubscriptions(
   return {credits, visits};
 }
 
+async function processBalancesForRenewal(
+  userValues: UserBalance,
+  subValues: SubscriptionValues,
+): Promise<UserBalance> {
+  let {credits,visits} = userValues;
+
+  credits = addCreditsFromRenewal(credits, subValues);
+  return {credits, visits};
+
+
+} 
+
 function addCreditsFromSubscription(credits: Credits, subValues: SubscriptionValues): Credits {
   const entries = Object.entries(subValues.credits);
   entries.forEach(([key, value]) => {
     console.log(`adding credit type ${key} with value ${value}`);
     credits[<CreditType>key] += value;
+  });
+
+  return credits;
+}
+
+function addCreditsFromRenewal(credits: Credits, subValues: SubscriptionValues): Credits {
+  const entries = Object.entries(subValues.credits);
+  entries.forEach(([key, value]) => {
+    if(credits[<CreditType>key] == 0){
+
+
+    }
+    else if(credits[<CreditType>key] < 6){
+
+      
+    }
+    else if(credits[<CreditType>key] > 6){
+
+      
+    }
+    console.log(`adding credit type ${key} with value ${value}`);
+     
   });
 
   return credits;

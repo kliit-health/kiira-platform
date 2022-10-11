@@ -35,10 +35,12 @@ export enum OperationType {
   Debit = "Debit"
 }
 
+
 export enum TransactionType {
   Appointment = "Appointment",
   Subscription = "Subscription",
-  None = ""
+  None = "",
+  Renewal = "Renewal"
 }
 
 
