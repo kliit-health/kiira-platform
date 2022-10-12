@@ -5,7 +5,9 @@ export interface KiiraFirestore {
   getUserByUid(byUid: { uid: string }): EitherAsync<string, { user: unknown }>;
 
   getPlan(byTitle: { title: string }): EitherAsync<string, { planId: string }>;
+  getPlanByUid(byUid: { uid: string }): EitherAsync<string, { plan: unknown }>;
 }
+import {firestore as firebase} from "firebase-admin";
 
 let firestore: KiiraFirestore | undefined = undefined;
 
@@ -30,6 +32,11 @@ export function createKiiraFirestore(): KiiraFirestore {
       });
     },
 
+    getPlanByUid(byUid: { uid: string }): EitherAsync<string, { plan: unknown }> {
+      return EitherAsync(async helpers => {
+        return helpers.throwE("Not yet implemented: getUserIdByEmail");
+      });
+    },
 
   };
 

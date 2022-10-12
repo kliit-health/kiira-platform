@@ -1,7 +1,9 @@
 import {it} from "mocha";
 import {assert} from "chai";
 import {Balance, calculateRemainingBalances, processBalancesForAppointments} from "../util";
-import {AppointmentType, AppointmentValues, CreditType, OperationType, UserBalance} from "../types";
+import {AppointmentType, AppointmentValues, OperationType} from "../types";
+import {CreditType, UserCredits} from "../../domain/bll/services/service-pricing";
+
 
 it("Credit op increments credit by 1", () => {
   const balance: Balance = processBalancesForAppointments(
@@ -74,11 +76,11 @@ it("Debits result in no change to visits when visit cost is 0", () => {
 
 it("", () => {
   const appointmentVal: AppointmentValues = {type: AppointmentType.VideoVisit, visitCost: 3};
-  const initialBalance: UserBalance = {
+  const initialBalance: UserCredits = {
     visits: 1,
     credits: {[CreditType.VideoVisit]: 1, [CreditType.TherapySession]: 1, [CreditType.HealthCheck]: 0},
   };
-  const first: UserBalance = calculateRemainingBalances(
+  const first: UserCredits = calculateRemainingBalances(
     appointmentVal,
     initialBalance,
     OperationType.Debit,
@@ -88,7 +90,7 @@ it("", () => {
   assert.equal(first.credits.TherapySession, 1);
   assert.equal(first.credits.VideoVisit, 0);
 
-  const second: UserBalance = calculateRemainingBalances(
+  const second: UserCredits = calculateRemainingBalances(
     {type: AppointmentType.TherapySession, visitCost: 3},
     first,
     OperationType.Debit,
@@ -98,7 +100,7 @@ it("", () => {
   assert.equal(second.credits.TherapySession, 0);
   assert.equal(second.credits.VideoVisit, 0);
 
-  const third: UserBalance = calculateRemainingBalances(
+  const third: UserCredits = calculateRemainingBalances(
     {type: AppointmentType.VideoVisit, visitCost: 1},
     second,
     OperationType.Debit,
