@@ -1,5 +1,5 @@
 import {Context} from "../ioc";
-import {PricingInfo, servicePricing} from "../core/bll/services/service-pricing";
+import {PricingInfo, servicePricing} from "../domain/bll/services/service-pricing";
 import {firestoreUserLookup} from "../db/firestore-user-lookup";
 import {firestoreServiceLookup} from "../db/firestore-service-lookup";
 import {EitherAsync, Maybe, MaybeAsync, NonEmptyList} from "purify-ts";

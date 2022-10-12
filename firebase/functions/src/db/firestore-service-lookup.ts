@@ -1,6 +1,6 @@
-import {ServiceId, ServiceLookup} from "../core/adapters/service-lookup";
+import {ServiceId, ServiceLookup} from "../domain/adapters/service-lookup";
 import {enumeration, Maybe, MaybeAsync} from "purify-ts";
-import {CreditType, ServiceCost} from "../core/bll/services/service-pricing";
+import {CreditType, ServiceCost} from "../domain/bll/services/service-pricing";
 import {FirestoreDb} from "./firestore-db";
 import {Integer} from "purify-ts-extra-codec";
 

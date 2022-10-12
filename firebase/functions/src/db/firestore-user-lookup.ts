@@ -1,7 +1,7 @@
 import {enumeration, GetType, Maybe, MaybeAsync, optional, record, string} from "purify-ts";
-import {CreditType, UserCredits} from "../core/bll/services/service-pricing";
+import {CreditType, UserCredits} from "../domain/bll/services/service-pricing";
 import {FirestoreDb} from "./firestore-db";
-import {UserId, UserLookup} from "../core/adapters/user-lookup";
+import {UserId, UserLookup} from "../domain/adapters/user-lookup";
 import {Integer, Interface} from "purify-ts-extra-codec";
 
 export function firestoreUserLookup(db: FirestoreDb): UserLookup {

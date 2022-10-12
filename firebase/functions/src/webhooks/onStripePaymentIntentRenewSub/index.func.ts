@@ -1,53 +1,96 @@
 import {Context} from "../../ioc";
-// import {KiiraSecrets} from "../../onAcuityAppointmentChanged/types";
-import {EitherAsync, enumeration, exactly, GetType, NonEmptyList, nonEmptyList, tuple} from "purify-ts";
-import {IntegerFromString, Interface, JsonFromString, NonEmptyString} from "purify-ts-extra-codec";
+import {Either, EitherAsync, enumeration, exactly, GetType, NonEmptyList, nonEmptyList, string, tuple} from "purify-ts";
+import {IntegerFromString, Interface, NonEmptyString} from "purify-ts-extra-codec";
 import {Logger} from "../../logging";
+import {AcuityClient} from "../../di/acuity";
 
-const handleRequest = (logger: Logger, body: unknown) =>
-  EitherAsync<string, void>(async ({liftEither, throwE}) => {
-      const secrets: KiiraSecrets = await liftEither(
-        JsonFromString(KiiraSecrets).decode(process.env.KIIRA_SECRETS)
+function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstName: string; lastName: string; cert: string; id: number; type: DescriptionType }> {
+  const tokenizationCodec = tuple([
+    enumeration(DescriptionType),
+    IntegerFromString,
+    NonEmptyString,
+    NonEmptyString,
+    NonEmptyString,
+  ]);
+
+  return EitherAsync(async ({liftEither}) => {
+    const tokenizedByDash: NonEmptyList<string> =
+      await liftEither(nonEmptyList(string).decode(charge.description.split("-")));
+    const tokenizedBySpace: string[] =
+      tokenizedByDash.flatMap(value => value.trim().split(" "));
+    const [type, id, firstName, lastName, cert] =
+      await liftEither(tokenizationCodec.decode(tokenizedBySpace));
+    return {type, id, firstName, lastName, cert};
+  });
+}
+
+
+
+function parseStripeBody(body: unknown): Either<string, StripeData> {
+  return StripeData.decode(body);
+}
+
+function getSubscriptionCharge(stripeData: StripeData): Charge {
+  return NonEmptyList.head(stripeData.data.object.charges.data);
+}
+
+function getUserIdByEmail(email: string): EitherAsync<string, { userId: string }> {
+  return EitherAsync(async helpers => {
+    return helpers.throwE("Not yet implemented");
+  });
+}
+
+function getPlanIdByName(productName: string): EitherAsync<string, { planId: string }> {
+  return EitherAsync(async helpers => {
+    return helpers.throwE("Not yet implemented");
+  });
+}
+
+function renewSubscriptionForUser(userId: string, planId: string): EitherAsync<string, void> {
+  return EitherAsync<string, void>(async helpers => {
+    return helpers.throwE("Not yet implemented");
+  }).void();
+}
+
+const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient) =>
+  EitherAsync<string, void>(async ({liftEither, throwE, fromPromise}) => {
+      const stripeData: StripeData = await liftEither(
+        parseStripeBody(body),
       );
-      logger.info("Secrets", secrets);
-
-      const stripeData: StripeData = await liftEither(StripeData.decode(body));
       logger.info("Valid request received.", stripeData);
-      const charges: NonEmptyList<Charge> = stripeData.data.object.charges.data;
 
-      const charge: Charge = NonEmptyList.head(charges);
-      const nel = await liftEither(
-        NonEmptyList.fromArray(charge.description.split("-")).toEither("Unable to split description on '-'")
+      const charge: Charge = getSubscriptionCharge(stripeData);
+      const {type, cert: certificate} = await fromPromise(
+        tokenizeChargeDescription(charge),
       );
-      const [sub, name, cert] = nel.map(value => value.trim().split(" "));
-      logger.info("Valid request received.", {sub, name, cert});
-
-      const [type, id] = await liftEither(
-        tuple([enumeration(DescriptionType), IntegerFromString]).decode(sub)
-      );
-      logger.info("Record", {type, id});
 
       if (type === DescriptionType.Order) {
         throwE("Payment intent was for an order, not for a subscription");
       }
 
-      const [first, last] = await liftEither(
-        tuple([NonEmptyString, NonEmptyString]).decode(name).mapLeft(() => `Name '${name}' is not a valid full name.`)
+      const email: string = charge.billing_details.email;
+      const {name} = await fromPromise(
+        acuity.getProduct({email, certificate}),
       );
-      logger.info("Name", {first, last});
-
+      const {userId} = await fromPromise(
+        getUserIdByEmail(email),
+      );
+      const {planId} = await fromPromise(
+        getPlanIdByName(name),
+      );
       // Request cert from acuity using email
       // iterate through results and filter for matching cert field
       // Proceed to credit the user
 
-      return;
-    }
+      return fromPromise(renewSubscriptionForUser(userId, planId));
+    },
   );
 
 module.exports = (context: Context) => {
-  const logger = context.logger;
+  const logger: Logger = context.logger;
+  const acuity: AcuityClient = context.acuity();
   return context.functions.runWith({secrets: ["KIIRA_SECRETS"]}).https.onRequest(async (request, response) => {
-    return handleRequest(logger, request.body)
+    return handleRequest(logger, request.body, acuity)
       .ifLeft(value => console.error("An error occurred:", value))
       .caseOf<void>({_: () => response.sendStatus(200)});
   });
@@ -78,11 +121,6 @@ const StripeData = Interface({
   data: Interface({object: PaymentIntent}),
 });
 type StripeData = GetType<typeof StripeData>
-const KiiraSecrets = Interface({
-  stripe: Interface({token: NonEmptyString}),
-});
-
-type KiiraSecrets = GetType<typeof KiiraSecrets>;
 
 enum DescriptionType {
   Order = "Order", Subscription = "Subscription"

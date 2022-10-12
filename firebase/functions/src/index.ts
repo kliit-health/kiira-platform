@@ -3,6 +3,7 @@ import functions = require("firebase-functions");
 import glob = require("glob");
 import {Context} from "./ioc";
 import {Logger} from "./logging";
+import {createClient} from "./di/acuity";
 // initialize firebase admin
 try {
   admin.initializeApp();
@@ -24,6 +25,7 @@ const context: Context = {
       }
     },
   },
+  acuity: () => createClient(),
 };
 
 function getFuncFiles() {

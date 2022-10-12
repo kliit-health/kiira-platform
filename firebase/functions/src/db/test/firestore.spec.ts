@@ -1,6 +1,6 @@
 import {describe, it} from "mocha";
 import {assert} from "chai";
-import {CreditType, ServiceCost, UserCredits} from "../../core/bll/services/service-pricing";
+import {CreditType, ServiceCost, UserCredits} from "../../domain/bll/services/service-pricing";
 import * as admin from "firebase-admin";
 import {ServiceAccount} from "firebase-admin";
 import {firestoreUserLookup} from "../firestore-user-lookup";
