@@ -36,13 +36,13 @@ function getSubscriptionCharge(stripeData: StripeData): Charge {
 
 function getUserIdByEmail(email: string): EitherAsync<string, { userId: string }> {
   return EitherAsync(async helpers => {
-    return helpers.throwE("Not yet implemented");
+    return helpers.throwE("Not yet implemented: getUserIdByEmail");
   });
 }
 
 function getPlanIdByName(productName: string): EitherAsync<string, { planId: string }> {
   return EitherAsync(async helpers => {
-    return helpers.throwE("Not yet implemented");
+    return helpers.throwE("Not yet implemented: getPlanIdByName");
   });
 }
 
@@ -88,8 +88,8 @@ const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient) =>
 
 module.exports = (context: Context) => {
   const logger: Logger = context.logger;
-  const acuity: AcuityClient = context.acuity();
   return context.functions.runWith({secrets: ["KIIRA_SECRETS"]}).https.onRequest(async (request, response) => {
+    const acuity: AcuityClient = context.acuity();
     return handleRequest(logger, request.body, acuity)
       .ifLeft(value => console.error("An error occurred:", value))
       .caseOf<void>({_: () => response.sendStatus(200)});

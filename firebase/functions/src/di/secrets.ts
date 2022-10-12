@@ -1,5 +1,5 @@
 import {Interface, JsonFromString, NonEmptyString} from "purify-ts-extra-codec";
-import {Either, GetType} from "purify-ts";
+import {Either, GetType, Left} from "purify-ts";
 
 const KiiraSecrets = Interface({
   stripe: Interface({token: NonEmptyString}),
@@ -12,5 +12,10 @@ const KiiraSecrets = Interface({
 export type KiiraSecrets = GetType<typeof KiiraSecrets>;
 
 export function getSecrets(): Either<string, KiiraSecrets> {
-  return JsonFromString(KiiraSecrets).decode(process.env.KIIRA_SECRETS);
+  const input: unknown = process.env.KIIRA_SECRETS;
+  if (input) {
+    return JsonFromString(KiiraSecrets).decode(input);
+  } else {
+    return Left("process.env.KIIRA_SECRETS has not been initialized.");
+  }
 }
