@@ -1,14 +1,20 @@
 import {
-  AppointmentValues,
   Credits,
   CreditType,
-  OperationType,
+  UserCredits as UserBalance,
+} from "../domain/bll/services/service-pricing";
+
+import {
+  AppointmentValues,
+
   SubscriptionValues,
+  OperationType,
   TransactionType,
-  UserBalance,
 } from "./types";
+
 import {getAppointmentValues, getCreditTypeForAppointment, getSubscriptionValues, getUserValues} from "./getData";
 import * as updateData from "./updateData";
+
 
 function replaceIn<T>(o: { [s: string]: T } | ArrayLike<T>, k: string, v: T): { [p: string]: T } {
   return Object.fromEntries(Object.entries(o)
