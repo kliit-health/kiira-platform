@@ -64,6 +64,12 @@ export async function processCreditsAndVisits(
       remainingBalance = await processBalancesForSubscriptions(currentBalance, subscriptionVal, operation);
       break;
     }
+
+    case TransactionType.Renewal: {
+      const subscriptionVal = await getSubscriptionValues(transactionId);
+      remainingBalance = await processBalancesForRenewal(currentBalance, subscriptionVal);
+      break;
+    }
   }
   await updateData.updateUserBalances(userId, remainingBalance);
 }
@@ -114,6 +120,16 @@ async function processBalancesForSubscriptions(
   return {credits, visits};
 }
 
+async function processBalancesForRenewal(
+  userValues: UserBalance,
+  subValues: SubscriptionValues,
+): Promise<UserBalance> {
+  let {credits, visits} = userValues;
+
+  credits = addCreditsFromRenewal(credits, subValues);
+  return {credits, visits};
+}
+
 function addCreditsFromSubscription(credits: Credits, subValues: SubscriptionValues): Credits {
   const entries = Object.entries(subValues.credits);
   entries.forEach(([key, value]) => {
@@ -122,4 +138,22 @@ function addCreditsFromSubscription(credits: Credits, subValues: SubscriptionVal
   });
 
   return credits;
+}
+// TODO: Possible refactor to have the +1 and the 5 be a dynamic look up for the ammount of credits added by plans on the user
+// +1 would represent the ammount of credits a longform plan could have added to them. 5 is the +1 and the ammount of credits given by
+function addCreditsFromRenewal(userCredits: Credits, subValues: SubscriptionValues): Credits {
+  const entries = Object.entries(subValues.credits);
+  entries.forEach(([key, value]) => {
+    if (userCredits[<CreditType>key] == 0) {
+      userCredits[<CreditType>key] = value;
+    } else if (userCredits[<CreditType>key] <= 5) {
+      userCredits[<CreditType>key] = value+1;
+    } else if (userCredits[<CreditType>key] > 5) {
+
+      // No operation leave userCredits alone
+    }
+    console.log(`adding credit type ${key} with value ${value}`);
+  });
+
+  return userCredits;
 }
