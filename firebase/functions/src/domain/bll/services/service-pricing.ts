@@ -3,7 +3,7 @@ export type PricingInfo = {
 }
 export type UserCredits = {
   readonly visits: number,
-  readonly credits?: Credits,
+  readonly credits: Credits,
   readonly orgCredits?: OrganizationCredits
 }
 
@@ -17,8 +17,8 @@ export enum CreditType {
   TherapySession = "TherapySession",
 }
 
-type Credits = {
-  [key in CreditType]?: number;
+export type Credits = {
+  [key in CreditType]: number;
 };
 
 

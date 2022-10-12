@@ -1,3 +1,8 @@
+import {
+   Credits,
+} from "../domain/bll/services/service-pricing";
+
+
 export enum AppointmentType {
   TherapySession = "Therapy Session",
   VideoVisit = "Video Visit",
@@ -9,26 +14,10 @@ export interface AppointmentValues {
   readonly visitCost: number;
 }
 
-export enum CreditType {
-  HealthCheck = "HealthCheck",
-  VideoVisit = "VideoVisit",
-  TherapySession = "TherapySession",
-}
-
-export type Credits = {
-  [key in CreditType]: number;
-};
-
 
 export interface SubscriptionValues {
   readonly credits: Credits;
 }
-
-export interface UserBalance {
-  readonly visits: number;
-  readonly credits: Credits;
-}
-
 
 export enum OperationType {
   Credit = "Credit",

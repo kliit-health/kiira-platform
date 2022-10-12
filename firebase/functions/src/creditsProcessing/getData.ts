@@ -1,5 +1,18 @@
-import {AppointmentType, AppointmentValues, Credits, CreditType, SubscriptionValues, UserBalance} from "./types";
+import {
+
+  CreditType,
+   UserCredits as UserBalance,
+   Credits,
+} from "../domain/bll/services/service-pricing";
+
+import {
+  AppointmentValues,
+  AppointmentType,
+  SubscriptionValues,
+
+} from "./types";
 import {firestore} from "firebase-admin";
+import {getNewCreditInstance} from "../domain/bll/services/test/service-pricing.spec";
 
 
 export async function getUserValues(uid: string): Promise<UserBalance> {
@@ -78,15 +91,4 @@ export function getCreditTypeForAppointment(appointmentType: AppointmentType): C
       throw new Error("Invalid Appointment Type passed for Credit Type Mapping");
     }
   }
-}
-
-
-function getNewCreditInstance(): Credits {
-  const creditsMap: Credits = {
-    VideoVisit: 0,
-    TherapySession: 0,
-    HealthCheck: 0,
-  };
-
-  return creditsMap;
 }
