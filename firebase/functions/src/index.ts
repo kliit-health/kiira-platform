@@ -4,6 +4,7 @@ import glob = require("glob");
 import {Context} from "./ioc";
 import {Logger} from "./logging";
 import {createClient} from "./di/acuity";
+import {createKiiraFirestore} from "./di/kiiraFirestore";
 // initialize firebase admin
 try {
   admin.initializeApp();
@@ -26,6 +27,7 @@ const context: Context = {
     },
   },
   acuity: () => createClient(),
+  kiiraFirestore: () => createKiiraFirestore(admin.firestore()),
 };
 
 function getFuncFiles() {

@@ -3,6 +3,7 @@ import {Either, EitherAsync, enumeration, exactly, GetType, NonEmptyList, nonEmp
 import {IntegerFromString, Interface, NonEmptyString} from "purify-ts-extra-codec";
 import {Logger} from "../../logging";
 import {AcuityClient} from "../../di/acuity";
+import {KiiraFirestore} from "../../di/kiiraFirestore";
 
 function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstName: string; lastName: string; cert: string; id: number; type: DescriptionType }> {
   const tokenizationCodec = tuple([
@@ -25,7 +26,6 @@ function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstN
 }
 
 
-
 function parseStripeBody(body: unknown): Either<string, StripeData> {
   return StripeData.decode(body);
 }
@@ -34,25 +34,13 @@ function getSubscriptionCharge(stripeData: StripeData): Charge {
   return NonEmptyList.head(stripeData.data.object.charges.data);
 }
 
-function getUserIdByEmail(email: string): EitherAsync<string, { userId: string }> {
-  return EitherAsync(async helpers => {
-    return helpers.throwE("Not yet implemented: getUserIdByEmail");
-  });
-}
-
-function getPlanIdByName(productName: string): EitherAsync<string, { planId: string }> {
-  return EitherAsync(async helpers => {
-    return helpers.throwE("Not yet implemented: getPlanIdByName");
-  });
-}
-
 function renewSubscriptionForUser(userId: string, planId: string): EitherAsync<string, void> {
   return EitherAsync<string, void>(async helpers => {
     return helpers.throwE("Not yet implemented");
   }).void();
 }
 
-const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient) =>
+const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient, firestore: KiiraFirestore) =>
   EitherAsync<string, void>(async ({liftEither, throwE, fromPromise}) => {
       const stripeData: StripeData = await liftEither(
         parseStripeBody(body),
@@ -73,15 +61,11 @@ const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient) =>
         acuity.getProduct({email, certificate}),
       );
       const {userId} = await fromPromise(
-        getUserIdByEmail(email),
+        firestore.getUser({email}),
       );
       const {planId} = await fromPromise(
-        getPlanIdByName(name),
+        firestore.getPlan({title: name}),
       );
-      // Request cert from acuity using email
-      // iterate through results and filter for matching cert field
-      // Proceed to credit the user
-
       return fromPromise(renewSubscriptionForUser(userId, planId));
     },
   );
@@ -90,7 +74,8 @@ module.exports = (context: Context) => {
   const logger: Logger = context.logger;
   return context.functions.runWith({secrets: ["KIIRA_SECRETS"]}).https.onRequest(async (request, response) => {
     const acuity: AcuityClient = context.acuity();
-    return handleRequest(logger, request.body, acuity)
+    const kiiraFirestore: KiiraFirestore = context.kiiraFirestore();
+    return handleRequest(logger, request.body, acuity, kiiraFirestore)
       .ifLeft(value => console.error("An error occurred:", value))
       .caseOf<void>({_: () => response.sendStatus(200)});
   });
