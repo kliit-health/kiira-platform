@@ -1,8 +1,9 @@
 import {
 
   CreditType,
-   UserCredits as UserBalance,
-   Credits,
+  UserCredits as UserBalance,
+  Credits,
+  getNewCreditInstance,
 } from "../domain/bll/services/service-pricing";
 
 import {
@@ -12,7 +13,6 @@ import {
 
 } from "./types";
 import {firestore} from "firebase-admin";
-import {getNewCreditInstance} from "../domain/bll/services/test/service-pricing.spec";
 
 
 export async function getUserValues(uid: string): Promise<UserBalance> {

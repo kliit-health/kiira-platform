@@ -62,3 +62,12 @@ export function servicePricing(
   }
   return {dollars: cost};
 }
+export function getNewCreditInstance(): Credits {
+  const creditsMap: Credits = {
+    VideoVisit: 0,
+    TherapySession: 0,
+    HealthCheck: 0,
+  };
+
+  return creditsMap;
+}

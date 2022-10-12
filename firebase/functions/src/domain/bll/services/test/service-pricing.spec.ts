@@ -1,6 +1,6 @@
 import {describe, it} from "mocha";
 import {assert} from "chai";
-import {Credits, CreditType, ServiceCost, servicePricing, UserCredits} from "../service-pricing";
+import {Credits, CreditType, ServiceCost, servicePricing, UserCredits, getNewCreditInstance} from "../service-pricing";
 
 describe("serviceCost", () => {
   const zeroCreditBalance = creditBalance({});
@@ -84,13 +84,3 @@ function serviceCost(params: ServiceCostParams): ServiceCost {
   };
 }
 
-
-function getNewCreditInstance(): Credits {
-  const creditsMap: Credits = {
-    VideoVisit: 0,
-    TherapySession: 0,
-    HealthCheck: 0,
-  };
-
-  return creditsMap;
-}
