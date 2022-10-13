@@ -1,20 +1,10 @@
-import {
+import {Credits, CreditType, UserCredits as UserBalance} from "../domain/bll/services/service-pricing";
 
-  CreditType,
-   UserCredits as UserBalance,
-   Credits,
-} from "../domain/bll/services/service-pricing";
-
-import {
-
-  AppointmentValues,
-  SubscriptionValues,
-  OperationType,
-  TransactionType,
-} from "./types";
+import {AppointmentValues, OperationType, SubscriptionValues, TransactionType} from "./types";
 
 import {getAppointmentValues, getCreditTypeForAppointment, getSubscriptionValues, getUserValues} from "./getData";
 import * as updateData from "./updateData";
+import {EitherAsync} from "purify-ts";
 
 
 function replaceIn<T>(o: { [s: string]: T } | ArrayLike<T>, k: string, v: T): { [p: string]: T } {
@@ -44,6 +34,10 @@ export function calculateRemainingBalances(
   return {visits: remaining.visits, credits: credits};
 }
 
+// eslint-disable-next-line valid-jsdoc
+/**
+ * @deprecated
+ */
 export async function processCreditsAndVisits(
   userId: string,
   transactionType: TransactionType,
@@ -61,18 +55,59 @@ export async function processCreditsAndVisits(
 
     case TransactionType.Subscription: {
       const subscriptionVal = await getSubscriptionValues(transactionId);
-      remainingBalance = await processBalancesForSubscriptions(currentBalance, subscriptionVal, operation);
+      remainingBalance = await processBalancesForSubscriptions(
+        currentBalance,
+        subscriptionVal.unsafeCoerce(),
+        operation,
+      );
       break;
     }
 
     case TransactionType.Renewal: {
       const subscriptionVal = await getSubscriptionValues(transactionId);
-      remainingBalance = processBalancesForRenewal(currentBalance, subscriptionVal);
+      remainingBalance = processBalancesForRenewal(currentBalance, subscriptionVal.unsafeCoerce());
       break;
     }
   }
   await updateData.updateUserBalances(userId, remainingBalance);
 }
+
+export function processCreditsAndVisitss(
+  userId: string,
+  transactionType: TransactionType,
+  transactionId: string,
+  operation: OperationType,
+): EitherAsync<string, void> {
+  return EitherAsync(async ({fromPromise, liftEither, throwE}) => {
+    const currentBalance = await getUserValues(userId);
+    let remainingBalance = currentBalance;
+    switch (transactionType) {
+      case TransactionType.Appointment: {
+        try {
+          const appointmentVal = await getAppointmentValues(transactionId);
+          remainingBalance = calculateRemainingBalances(appointmentVal, currentBalance, operation);
+        } catch (e) {
+          throwE("AppointmentError");
+        }
+        break;
+      }
+
+      case TransactionType.Subscription: {
+        const subscriptionVal = await fromPromise(getSubscriptionValues(transactionId));
+        remainingBalance = await processBalancesForSubscriptions(currentBalance, subscriptionVal, operation);
+        break;
+      }
+
+      case TransactionType.Renewal: {
+        const subscriptionVal = await fromPromise(getSubscriptionValues(transactionId).mapLeft(value => `Renewal error '${value}'`));
+        remainingBalance = processBalancesForRenewal(currentBalance, subscriptionVal);
+        break;
+      }
+    }
+    await updateData.updateUserBalances(userId, remainingBalance);
+  });
+}
+
 
 export type Balance = { readonly visits: number, readonly credits: number };
 
@@ -100,11 +135,11 @@ export function processBalancesForAppointments(
   return {credits, visits};
 }
 
-async function processBalancesForSubscriptions(
+function processBalancesForSubscriptions(
   userValues: UserBalance,
   subValues: SubscriptionValues,
   operationId: OperationType,
-): Promise<UserBalance> {
+): UserBalance {
   let {credits, visits} = userValues;
 
   switch (operationId) {
@@ -131,23 +166,22 @@ function processBalancesForRenewal(
 }
 
 function addCreditsFromSubscription(credits: Credits, subValues: SubscriptionValues): Credits {
-  const entries = Object.entries(subValues.credits);
-  entries.forEach(([key, value]) => {
+  subValues.credits.forEach(([key, value]) => {
     console.log(`adding credit type ${key} with value ${value}`);
     credits[<CreditType>key] += value;
   });
 
   return credits;
 }
+
 // TODO: Possible refactor to have the +1 and the 5 be a dynamic look up for the ammount of credits added by plans on the user
 // +1 would represent the ammount of credits a longform plan could have added to them. 5 is the +1 and the ammount of credits given by
 function addCreditsFromRenewal(userCredits: Credits, subValues: SubscriptionValues): Credits {
-  const entries = Object.entries(subValues.credits);
-  entries.forEach(([key, value]) => {
+  subValues.credits.forEach(([key, value]) => {
     if (userCredits[<CreditType>key] == 0) {
       userCredits[<CreditType>key] = value;
     } else if (userCredits[<CreditType>key] <= 5) {
-      userCredits[<CreditType>key] = value+1;
+      userCredits[<CreditType>key] = value + 1;
     } else if (userCredits[<CreditType>key] > 5) {
 
       // No operation leave userCredits alone

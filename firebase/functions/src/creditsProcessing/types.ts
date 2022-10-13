@@ -1,6 +1,4 @@
-import {
-   Credits,
-} from "../domain/bll/services/service-pricing";
+import {PlanCredits} from "../domain/bll/models/Plan";
 
 
 export enum AppointmentType {
@@ -16,7 +14,7 @@ export interface AppointmentValues {
 
 
 export interface SubscriptionValues {
-  readonly credits: Credits;
+  readonly credits: PlanCredits;
 }
 
 export enum OperationType {

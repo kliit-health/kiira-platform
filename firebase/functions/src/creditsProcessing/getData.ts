@@ -1,18 +1,9 @@
-import {
 
-  CreditType,
-  UserCredits as UserBalance,
-  Credits,
-  getNewCreditInstance,
-} from "../domain/bll/services/service-pricing";
-
-import {
-  AppointmentValues,
-  AppointmentType,
-  SubscriptionValues,
-
-} from "./types";
 import {firestore} from "firebase-admin";
+import {EitherAsync} from "purify-ts";
+import {Credits, CreditType, getNewCreditInstance, UserCredits as UserBalance} from "../domain/bll/services/service-pricing";
+import {AppointmentType, AppointmentValues, SubscriptionValues} from "./types";
+import {PlanCodec, PlanCredits} from "../domain/bll/models/Plan";
 
 
 export async function getUserValues(uid: string): Promise<UserBalance> {
@@ -55,22 +46,23 @@ export async function getAppointmentValues(appointmentId: string): Promise<Appoi
   };
 }
 
-export async function getSubscriptionValues(subId: string): Promise<SubscriptionValues> {
-  const subDoc = await firestore()
-    .collection("plans")
-    .doc(subId)
-    .get();
+export function getSubscriptionValues(subId: string): EitherAsync<string, SubscriptionValues> {
+  return EitherAsync(async ({liftEither}) => {
+    const subDoc = await firestore()
+      .collection("plans")
+      .doc(subId)
+      .get();
 
-  // Insert Error handle if there was no appointment with valid id. Meaning .data is undefined
-  const data = subDoc.data();
-  const therapyCreds: number = data?.credits[CreditType.TherapySession];
-  console.log("credits for the subscription : " + therapyCreds);
-  // Insert error handle for if the title or credits field for the appointment is undefined
-  // if(!data?.title){return;}
+    // Insert Error handle if there was no appointment with valid id. Meaning .data is undefined
+    const data = subDoc.data();
+    const credits: PlanCredits = await liftEither(
+      PlanCodec.decode(data).map(value => value.credits),
+    );
+    // Insert error handle for if the title or credits field for the appointment is undefined
+    // if(!data?.title){return;}
 
-  return {
-    credits: data?.credits ?? {[CreditType.TherapySession]: 0},
-  };
+    return {credits};
+  });
 }
 
 export function getCreditTypeForAppointment(appointmentType: AppointmentType): CreditType {
