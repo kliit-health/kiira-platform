@@ -4,6 +4,8 @@ import {IntegerFromString, Interface, NonEmptyString} from "purify-ts-extra-code
 import {Logger} from "../../logging";
 import {AcuityClient} from "../../di/acuity";
 import {KiiraFirestore} from "../../di/kiiraFirestore";
+import {processCreditsAndVisits} from "../../creditsProcessing/util";
+import {OperationType, TransactionType} from "../../creditsProcessing/types";
 
 function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstName: string; lastName: string; cert: string; id: number; type: DescriptionType }> {
   const tokenizationCodec = tuple([
@@ -34,12 +36,6 @@ function getSubscriptionCharge(stripeData: StripeData): Charge {
   return NonEmptyList.head(stripeData.data.object.charges.data);
 }
 
-function renewSubscriptionForUser(userId: string, planId: string): EitherAsync<string, void> {
-  return EitherAsync<string, void>(async helpers => {
-    return helpers.throwE("renewSubscriptionForUser is not yet implemented");
-  }).void();
-}
-
 const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient, firestore: KiiraFirestore) =>
   EitherAsync<string, void>(async ({liftEither, throwE, fromPromise}) => {
       const stripeData: StripeData = await liftEither(
@@ -66,7 +62,14 @@ const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient, fire
       const {planId} = await fromPromise(
         firestore.getPlan({title: name}),
       );
-      return fromPromise(renewSubscriptionForUser(userId, planId));
+
+      try {
+        await processCreditsAndVisits(userId, TransactionType.Renewal, planId, OperationType.Credit);
+      } catch (e) {
+        throwE(`Call to processCreditsAndVisits failed with the following error -> ${JSON.stringify(e)}`);
+      }
+
+      return;
     },
   );
 

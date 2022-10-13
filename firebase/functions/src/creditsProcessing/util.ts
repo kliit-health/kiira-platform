@@ -67,7 +67,7 @@ export async function processCreditsAndVisits(
 
     case TransactionType.Renewal: {
       const subscriptionVal = await getSubscriptionValues(transactionId);
-      remainingBalance = await processBalancesForRenewal(currentBalance, subscriptionVal);
+      remainingBalance = processBalancesForRenewal(currentBalance, subscriptionVal);
       break;
     }
   }
@@ -120,10 +120,10 @@ async function processBalancesForSubscriptions(
   return {credits, visits};
 }
 
-async function processBalancesForRenewal(
+function processBalancesForRenewal(
   userValues: UserBalance,
   subValues: SubscriptionValues,
-): Promise<UserBalance> {
+): UserBalance {
   let {credits, visits} = userValues;
 
   credits = addCreditsFromRenewal(credits, subValues);
