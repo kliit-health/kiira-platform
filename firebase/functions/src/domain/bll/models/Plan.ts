@@ -2,7 +2,7 @@ import {Integer, Interface, NonEmptyString} from "purify-ts-extra-codec";
 import {Codec, enumeration, GetType, Left, nonEmptyList, NonEmptyList, tuple} from "purify-ts";
 import {CreditType} from "../services/service-pricing";
 
-const PlanCreditsCodec = Codec.custom<NonEmptyList<[CreditType, number]>>({
+export const PlanCreditsCodec = Codec.custom<NonEmptyList<[CreditType, number]>>({
   decode: (value: unknown) => {
     const nelCodec = nonEmptyList(tuple([enumeration(CreditType), Integer]));
     if (!value) return Left(`Expected an object, but received ${value}`);

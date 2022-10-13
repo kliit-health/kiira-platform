@@ -176,17 +176,25 @@ function addCreditsFromSubscription(credits: Credits, subValues: SubscriptionVal
 
 // TODO: Possible refactor to have the +1 and the 5 be a dynamic look up for the ammount of credits added by plans on the user
 // +1 would represent the ammount of credits a longform plan could have added to them. 5 is the +1 and the ammount of credits given by
-function addCreditsFromRenewal(userCredits: Credits, subValues: SubscriptionValues): Credits {
+export function addCreditsFromRenewal(userCredits: Credits, subValues: SubscriptionValues): Credits {
   subValues.credits.forEach(([key, value]) => {
-    if (userCredits[<CreditType>key] == 0) {
-      userCredits[<CreditType>key] = value;
-    } else if (userCredits[<CreditType>key] <= 5) {
-      userCredits[<CreditType>key] = value + 1;
-    } else if (userCredits[<CreditType>key] > 5) {
-      // No operation leave userCredits alone
+    let hasMemebershipCredit = true;
+    let creditRefreshThreshold = value;
+
+    if (userCredits[<CreditType>key] === 0) {
+      hasMemebershipCredit = false;
+    }
+
+    if (hasMemebershipCredit) {
+      creditRefreshThreshold++; // 4 + 1
+    }
+
+    if (userCredits[<CreditType>key] <= creditRefreshThreshold) {
+      userCredits[<CreditType>key] = creditRefreshThreshold;
     }
     console.log(`adding credit type ${key} with value ${value}`);
   });
 
   return userCredits;
 }
+
