@@ -1,60 +1,46 @@
-import {EitherAsync, NonEmptyList, nonEmptyList} from "purify-ts";
-import {AxiosError, AxiosResponse, default as axios} from "axios";
-import {getSecrets, KiiraSecrets} from "./secrets";
-import {Integer, Interface, NonEmptyString} from "purify-ts-extra-codec";
+import {EitherAsync} from "purify-ts";
 
-export interface AcuityClient {
-  getProduct(byCertificate: { email?: string, certificate: string }): EitherAsync<string, { name: string }>;
+export interface KiiraFirestore {
+  getUserByEmail(byEmail: { email: string }): EitherAsync<string, { uid: string }>;
+  getUserByUid(byUid: { uid: string }): EitherAsync<string, { user: unknown }>;
+
+  getPlan(byTitle: { title: string }): EitherAsync<string, { planId: string }>;
+  getPlanByUid(byUid: { uid: string }): EitherAsync<string, { plan: unknown }>;
 }
+import {firestore as firebase} from "firebase-admin";
 
-let acuity: AcuityClient | undefined = undefined;
+let firestore: KiiraFirestore | undefined = undefined;
 
-export function createClient(): AcuityClient {
-  if (acuity) return acuity;
+export function createKiiraFirestore(): KiiraFirestore {
+  if (firestore) return firestore;
 
-  const {acuity: {apikey, userid}}: KiiraSecrets = getSecrets().unsafeCoerce();
-  const axiosInstance = axios.create({
-    baseURL: "https://acuityscheduling.com/api/v1",
-    auth: {username: userid, password: apikey},
-  });
-
-  acuity = <AcuityClient>{
-    getProduct(byCertificate: { email?: string; certificate: string }): EitherAsync<string, { name: string }> {
-      const {email, certificate} = byCertificate;
-      return EitherAsync(async ({liftEither, throwE}) => {
-        let response: AxiosResponse | undefined = undefined;
-        try {
-          response = await axiosInstance.get("/certificates", {params: {email}});
-        } catch (e: unknown) {
-          const axiosError: AxiosError = <AxiosError>e;
-          throwE(`${axiosError.message}, response=${JSON.stringify(axiosError.response?.data)}`);
-        }
-        const certificates = await liftEither(
-          nonEmptyList(Interface({certificate: NonEmptyString, productID: Integer}))
-            .decode(response?.data)
-            .mapLeft(() => `AcuityClient#getProduct, there were no certificates found matching ${certificate}`),
-        );
-
-        const filtered = certificates.filter(value => value.certificate === certificate);
-        const matchingCerts = await liftEither(
-          NonEmptyList.fromArray(filtered).toEither("No entries matching certificate"),
-        );
-
-        const {productID} = NonEmptyList.head(matchingCerts);
-
-        try {
-          response = await axiosInstance.get(`/products/${productID}`);
-        } catch (e: unknown) {
-          const axiosError: AxiosError = <AxiosError>e;
-          throwE(`${axiosError.message}, response=${JSON.stringify(axiosError.response?.data)}`);
-        }
-        const {name} = await liftEither(Interface({name: NonEmptyString}).decode(response?.data));
-        return {name};
+  firestore = <KiiraFirestore>{
+    getUserByEmail(byEmail: { email: string }): EitherAsync<string, { uid: string }> {
+      return EitherAsync(async helpers => {
+        return helpers.throwE("Not yet implemented: getUserIdByEmail");
       });
     },
+    getUserByUid(byUid: { uid: string }): EitherAsync<string, { user: unknown }> {
+      return EitherAsync(async helpers => {
+        return helpers.throwE("Not yet implemented: getUserIdByEmail");
+      });
+    },
+
+    getPlan(byTitle: { title: string }): EitherAsync<string, { planId: string }> {
+      return EitherAsync(async helpers => {
+        return helpers.throwE("Not yet implemented: getUserIdByEmail");
+      });
+    },
+
+    getPlanByUid(byUid: { uid: string }): EitherAsync<string, { plan: unknown }> {
+      return EitherAsync(async helpers => {
+        return helpers.throwE("Not yet implemented: getUserIdByEmail");
+      });
+    },
+
   };
 
-  return acuity;
+  return firestore;
 }
 
 // const errorCodec = Interface({status_code: Integer, message: NonEmptyString});

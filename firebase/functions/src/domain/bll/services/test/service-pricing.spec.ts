@@ -1,6 +1,6 @@
 import {describe, it} from "mocha";
 import {assert} from "chai";
-import {CreditType, ServiceCost, servicePricing, UserCredits} from "../service-pricing";
+import {Credits, CreditType, ServiceCost, servicePricing, UserCredits, getNewCreditInstance} from "../service-pricing";
 
 describe("serviceCost", () => {
   const zeroCreditBalance = creditBalance({});
@@ -33,6 +33,7 @@ describe("serviceCost", () => {
   it("should be 0 when user has unlimited appointments.", () => {
     const userCredits: UserCredits = {
       visits: 0,
+      credits: getNewCreditInstance(),
       orgCredits: {visits: Infinity},
     };
     const pricing = servicePricing(
@@ -66,7 +67,9 @@ interface CreditBalanceParams {
 
 function creditBalance(params: CreditBalanceParams): UserCredits {
   const visits: number = params.visitCredits ?? 0;
-  return {visits, credits: {[CreditType.TherapySession]: params.therapySession}};
+  const credits : Credits = getNewCreditInstance();
+  credits[CreditType.TherapySession] = params.therapySession ?? 0;
+  return {visits, credits};
 }
 
 interface ServiceCostParams {
@@ -80,3 +83,4 @@ function serviceCost(params: ServiceCostParams): ServiceCost {
     type: params.type ?? CreditType.HealthCheck,
   };
 }
+

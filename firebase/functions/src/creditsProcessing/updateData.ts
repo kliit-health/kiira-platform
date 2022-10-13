@@ -1,8 +1,8 @@
-import {UserBalance} from "./types";
+import {UserCredits} from "../domain/bll/services/service-pricing";
 import {firestore} from "firebase-admin";
 
 
-export async function updateUserBalances(uid: string, newUserBalance: UserBalance) {
+export async function updateUserBalances(uid: string, newUserBalance: UserCredits) {
   await firestore()
     .collection("users")
     .doc(uid)
