@@ -4,7 +4,7 @@ import {IntegerFromString, Interface, NonEmptyString} from "purify-ts-extra-code
 import {Logger} from "../../logging";
 import {AcuityClient} from "../../di/acuity";
 import {KiiraFirestore} from "../../di/kiiraFirestore";
-import {processCreditsAndVisitss} from "../../creditsProcessing/util";
+import {updateCreditBalance} from "../../creditsProcessing/util";
 import {OperationType, TransactionType} from "../../creditsProcessing/types";
 
 function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstName: string; lastName: string; cert: string; id: number; type: DescriptionType }> {
@@ -44,11 +44,17 @@ const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient, fire
       logger.info("Valid request received.", stripeData);
 
       const charge: Charge = getSubscriptionCharge(stripeData);
-      const {type, cert: certificate} = await fromPromise(
+      const {type, id, cert: certificate} = await fromPromise(
         tokenizeChargeDescription(charge),
       );
 
       if (type === DescriptionType.Order) {
+        if (certificate === "Subscription") {
+          const nel: NonEmptyList<any> = await fromPromise(
+            acuity.getSubscriptions({orderId: id}),
+          );
+          await fromPromise(firestore.addAcuitySubscriptions(nel));
+        }
         throwE("Payment intent was for an order, not for a subscription");
       }
 
@@ -64,7 +70,7 @@ const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient, fire
       );
 
       await fromPromise(
-        processCreditsAndVisitss(userId, TransactionType.Renewal, planId, OperationType.Credit)
+        updateCreditBalance(userId, TransactionType.SubscriptionRecurrence, planId, OperationType.Credit)
           .mapLeft(value =>
             throwE(`Call to processCreditsAndVisits failed with the following error -> ${value}`),
           ),

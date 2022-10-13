@@ -63,7 +63,7 @@ export async function processCreditsAndVisits(
       break;
     }
 
-    case TransactionType.Renewal: {
+    case TransactionType.SubscriptionRecurrence: {
       const subscriptionVal = await getSubscriptionValues(transactionId);
       remainingBalance = processBalancesForRenewal(currentBalance, subscriptionVal.unsafeCoerce());
       break;
@@ -72,7 +72,7 @@ export async function processCreditsAndVisits(
   await updateData.updateUserBalances(userId, remainingBalance);
 }
 
-export function processCreditsAndVisitss(
+export function updateCreditBalance(
   userId: string,
   transactionType: TransactionType,
   transactionId: string,
@@ -98,7 +98,7 @@ export function processCreditsAndVisitss(
         break;
       }
 
-      case TransactionType.Renewal: {
+      case TransactionType.SubscriptionRecurrence: {
         const subscriptionVal = await fromPromise(getSubscriptionValues(transactionId).mapLeft(value => `Renewal error '${value}'`));
         remainingBalance = processBalancesForRenewal(currentBalance, subscriptionVal);
         break;

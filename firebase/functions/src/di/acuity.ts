@@ -5,6 +5,7 @@ import {Integer, Interface, NonEmptyString} from "purify-ts-extra-codec";
 
 export interface AcuityClient {
   getProduct(byCertificate: { email?: string, certificate: string }): EitherAsync<string, { name: string }>;
+  getSubscriptions(param: { orderId: number }): EitherAsync<string, NonEmptyList<any>>;
 }
 
 let acuity: AcuityClient | undefined = undefined;
@@ -18,7 +19,10 @@ export function createClient(): AcuityClient {
     auth: {username: userid, password: apikey},
   });
 
-  acuity = <AcuityClient>{
+  acuity = {
+    getSubscriptions(param: { orderId: number }): EitherAsync<string, NonEmptyList<any>> {
+      return EitherAsync(helpers => helpers.throwE("getSubscriptions not implemented."));
+    },
     getProduct(byCertificate: { email?: string; certificate: string }): EitherAsync<string, { name: string }> {
       const {email, certificate} = byCertificate;
       return EitherAsync(async ({liftEither, throwE}) => {

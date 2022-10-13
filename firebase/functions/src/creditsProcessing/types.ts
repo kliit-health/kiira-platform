@@ -27,7 +27,7 @@ export enum TransactionType {
   Appointment = "Appointment",
   Subscription = "Subscription",
   None = "",
-  Renewal = "Renewal"
+  SubscriptionRecurrence = "SubscriptionRecurrence"
 }
 
 
