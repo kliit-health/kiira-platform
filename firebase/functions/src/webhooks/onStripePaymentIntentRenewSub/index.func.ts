@@ -76,7 +76,7 @@ module.exports = (context: Context) => {
     const acuity: AcuityClient = context.acuity();
     const kiiraFirestore: KiiraFirestore = context.kiiraFirestore();
     return handleRequest(logger, request.body, acuity, kiiraFirestore)
-      .ifLeft(value => console.error("An error occurred:", value))
+      .ifLeft(value => logger.error(value))
       .caseOf<void>({_: () => response.sendStatus(200)});
   });
 };

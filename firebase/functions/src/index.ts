@@ -25,6 +25,9 @@ const context: Context = {
         functions.logger.log(message);
       }
     },
+    error(message: string, data?: unknown): void {
+      functions.logger.error(message, data);
+    },
   },
   acuity: () => createClient(),
   kiiraFirestore: () => createKiiraFirestore(admin.firestore()),
