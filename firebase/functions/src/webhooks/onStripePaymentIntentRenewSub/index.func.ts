@@ -36,7 +36,7 @@ function getSubscriptionCharge(stripeData: StripeData): Charge {
 
 function renewSubscriptionForUser(userId: string, planId: string): EitherAsync<string, void> {
   return EitherAsync<string, void>(async helpers => {
-    return helpers.throwE("Not yet implemented");
+    return helpers.throwE("renewSubscriptionForUser is not yet implemented");
   }).void();
 }
 

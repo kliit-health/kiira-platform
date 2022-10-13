@@ -18,15 +18,11 @@ const context: Context = {
   functions: functions,
   firestore: admin.firestore(),
   logger: <Logger>{
-    info(message: string, data?: unknown): void {
-      if (data) {
-        functions.logger.log(message, data);
-      } else {
-        functions.logger.log(message);
-      }
+    info(...args: unknown[]): void {
+      functions.logger.log(...args);
     },
-    error(message: string, data?: unknown): void {
-      functions.logger.error(message, data);
+    error(...args: unknown[]): void {
+      functions.logger.error(...args);
     },
   },
   acuity: () => createClient(),
