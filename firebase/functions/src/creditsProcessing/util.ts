@@ -78,7 +78,7 @@ export function processCreditsAndVisitss(
   transactionId: string,
   operation: OperationType,
 ): EitherAsync<string, void> {
-  return EitherAsync(async ({fromPromise, liftEither, throwE}) => {
+  return EitherAsync(async ({fromPromise, throwE}) => {
     const currentBalance = await getUserValues(userId);
     let remainingBalance = currentBalance;
     switch (transactionType) {
@@ -183,7 +183,6 @@ function addCreditsFromRenewal(userCredits: Credits, subValues: SubscriptionValu
     } else if (userCredits[<CreditType>key] <= 5) {
       userCredits[<CreditType>key] = value + 1;
     } else if (userCredits[<CreditType>key] > 5) {
-
       // No operation leave userCredits alone
     }
     console.log(`adding credit type ${key} with value ${value}`);
