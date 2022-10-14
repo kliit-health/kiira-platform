@@ -41,7 +41,19 @@ export function createKiiraFirestore(firestoreDb: FirestoreDb): KiiraFirestore {
       });
     },
     addAcuitySubscriptions(nel: NonEmptyList<AcuitySubscription>): EitherAsync<string, void> {
-      return EitherAsync(helpers => helpers.throwE("addAcuitySubscriptions is not implemented"));
+      return EitherAsync(async ({throwE, fromPromise}) => {
+        const asyncs: NonEmptyList<EitherAsync<unknown, FirebaseFirestore.WriteResult>> = nel.map(value => {
+          return EitherAsync(async () => {
+            return await firestoreDb.collection("acuitySubscriptions")
+              .doc(value.certificate)
+              .set(value, {merge: true});
+          });
+        });
+        const errors = await EitherAsync.lefts(asyncs);
+        if (errors.length !== 0) {
+          throwE(JSON.stringify(errors));
+        }
+      });
     },
   };
 
