@@ -1,10 +1,11 @@
 import {EitherAsync, NonEmptyList} from "purify-ts";
 import {FirestoreDb} from "../db/firestore-db";
+import {AcuitySubscription} from "../db/models/AcuitySubscription";
 
 export interface KiiraFirestore {
   getUser(byEmail: { email: string }): EitherAsync<string, UserId>;
   getPlan(byTitle: { title: string }): EitherAsync<string, PlanId>;
-  addAcuitySubscriptions(nel: NonEmptyList<any>): EitherAsync<string, void>;
+  addAcuitySubscriptions(nel: NonEmptyList<AcuitySubscription>): EitherAsync<string, void>;
 }
 
 let firestore: KiiraFirestore | undefined = undefined;

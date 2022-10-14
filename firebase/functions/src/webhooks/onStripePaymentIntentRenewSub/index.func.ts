@@ -6,6 +6,7 @@ import {AcuityClient} from "../../di/acuity";
 import {KiiraFirestore} from "../../di/kiiraFirestore";
 import {updateCreditBalance} from "../../creditsProcessing/util";
 import {OperationType, TransactionType} from "../../creditsProcessing/types";
+import {AcuitySubscription} from "../../db/models/AcuitySubscription";
 
 function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstName: string; lastName: string; cert: string; id: number; type: DescriptionType }> {
   const tokenizationCodec = tuple([
@@ -50,7 +51,7 @@ const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient, fire
 
       if (type === DescriptionType.Order) {
         if (certificate === "Subscription") {
-          const nel: NonEmptyList<any> = await fromPromise(
+          const nel: NonEmptyList<AcuitySubscription> = await fromPromise(
             acuity.getSubscriptions({orderId: id}),
           );
           await fromPromise(firestore.addAcuitySubscriptions(nel));
