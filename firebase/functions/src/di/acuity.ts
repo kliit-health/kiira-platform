@@ -5,6 +5,7 @@ import {Integer, Interface, NonEmptyString} from "purify-ts-extra-codec";
 
 export interface AcuityClient {
   getProduct(byCertificate: { email?: string, certificate: string }): EitherAsync<string, { name: string }>;
+
   getSubscriptions(param: { orderId: number }): EitherAsync<string, NonEmptyList<any>>;
 }
 

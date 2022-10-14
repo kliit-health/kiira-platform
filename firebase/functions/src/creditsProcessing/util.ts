@@ -1,7 +1,5 @@
-import {Credits, CreditType, UserCredits as UserBalance} from "../domain/bll/services/service-pricing";
-
+import {Credits, CreditType, UserCredits, UserCredits as UserBalance} from "../domain/bll/services/service-pricing";
 import {AppointmentValues, OperationType, SubscriptionValues, TransactionType} from "./types";
-
 import {getAppointmentValues, getCreditTypeForAppointment, getSubscriptionValues, getUserValues} from "./getData";
 import * as updateData from "./updateData";
 import {EitherAsync} from "purify-ts";
@@ -65,7 +63,7 @@ export async function processCreditsAndVisits(
 
     case TransactionType.SubscriptionRecurrence: {
       const subscriptionVal = await getSubscriptionValues(transactionId);
-      remainingBalance = processBalancesForRenewal(currentBalance, subscriptionVal.unsafeCoerce());
+      remainingBalance = addCreditsFromRenewal(currentBalance, subscriptionVal.unsafeCoerce());
       break;
     }
   }
@@ -100,7 +98,7 @@ export function updateCreditBalance(
 
       case TransactionType.SubscriptionRecurrence: {
         const subscriptionVal = await fromPromise(getSubscriptionValues(transactionId).mapLeft(value => `Renewal error '${value}'`));
-        remainingBalance = processBalancesForRenewal(currentBalance, subscriptionVal);
+        remainingBalance = addCreditsFromRenewal(currentBalance, subscriptionVal);
         break;
       }
     }
@@ -155,16 +153,6 @@ function processBalancesForSubscriptions(
   return {credits, visits};
 }
 
-function processBalancesForRenewal(
-  userValues: UserBalance,
-  subValues: SubscriptionValues,
-): UserBalance {
-  let {credits, visits} = userValues;
-
-  credits = addCreditsFromRenewal(credits, subValues);
-  return {credits, visits};
-}
-
 function addCreditsFromSubscription(credits: Credits, subValues: SubscriptionValues): Credits {
   subValues.credits.forEach(([key, value]) => {
     console.log(`adding credit type ${key} with value ${value}`);
@@ -176,25 +164,23 @@ function addCreditsFromSubscription(credits: Credits, subValues: SubscriptionVal
 
 // TODO: Possible refactor to have the +1 and the 5 be a dynamic look up for the ammount of credits added by plans on the user
 // +1 would represent the ammount of credits a longform plan could have added to them. 5 is the +1 and the ammount of credits given by
-export function addCreditsFromRenewal(userCredits: Credits, subValues: SubscriptionValues): Credits {
+export function addCreditsFromRenewal(userCredits: UserCredits, subValues: SubscriptionValues): UserCredits {
+  let hasMembershipCredit = userCredits.hasMembershipPlanCredits ?? true;
   subValues.credits.forEach(([key, value]) => {
-    let hasMemebershipCredit = true;
     let creditRefreshThreshold = value;
 
-    if (userCredits[<CreditType>key] === 0) {
-      hasMemebershipCredit = false;
+    if (userCredits.credits[<CreditType>key] === 0) {
+      hasMembershipCredit = false;
     }
 
-    if (hasMemebershipCredit) {
+    if (hasMembershipCredit) {
       creditRefreshThreshold++; // 4 + 1
     }
 
-    if (userCredits[<CreditType>key] <= creditRefreshThreshold) {
-      userCredits[<CreditType>key] = creditRefreshThreshold;
+    if (userCredits.credits[<CreditType>key] <= creditRefreshThreshold) {
+      userCredits.credits[<CreditType>key] = creditRefreshThreshold;
     }
-    console.log(`adding credit type ${key} with value ${value}`);
   });
-
-  return userCredits;
+  return <UserCredits>Object.assign({}, userCredits, {hasMembershipPlanCredits: hasMembershipCredit});
 }
 

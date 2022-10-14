@@ -1,7 +1,11 @@
-
 import {firestore} from "firebase-admin";
 import {EitherAsync} from "purify-ts";
-import {Credits, CreditType, getNewCreditInstance, UserCredits as UserBalance} from "../domain/bll/services/service-pricing";
+import {
+  Credits,
+  CreditType,
+  getNewCreditInstance,
+  UserCredits as UserBalance,
+} from "../domain/bll/services/service-pricing";
 import {AppointmentType, AppointmentValues, SubscriptionValues} from "./types";
 import {PlanCodec, PlanCredits} from "../domain/bll/models/Plan";
 
@@ -20,10 +24,10 @@ export async function getUserValues(uid: string): Promise<UserBalance> {
       creditsObject[<CreditType>key] = <number>value;
     });
   }
-
   return {
     credits: creditsObject,
     visits: user?.visits ?? 0,
+    hasMembershipPlanCredits: user?.hasMembershipPlanCredits ?? true,
   };
 }
 

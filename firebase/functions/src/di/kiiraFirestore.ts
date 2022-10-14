@@ -4,7 +4,9 @@ import {AcuitySubscription} from "../db/models/AcuitySubscription";
 
 export interface KiiraFirestore {
   getUser(byEmail: { email: string }): EitherAsync<string, UserId>;
+
   getPlan(byTitle: { title: string }): EitherAsync<string, PlanId>;
+
   addAcuitySubscriptions(nel: NonEmptyList<AcuitySubscription>): EitherAsync<string, void>;
 }
 

@@ -1,6 +1,6 @@
 import {describe, it} from "mocha";
 import {assert} from "chai";
-import {Credits, CreditType, ServiceCost, servicePricing, UserCredits, getNewCreditInstance} from "../service-pricing";
+import {Credits, CreditType, getNewCreditInstance, ServiceCost, servicePricing, UserCredits} from "../service-pricing";
 
 describe("serviceCost", () => {
   const zeroCreditBalance = creditBalance({});
@@ -67,7 +67,7 @@ interface CreditBalanceParams {
 
 function creditBalance(params: CreditBalanceParams): UserCredits {
   const visits: number = params.visitCredits ?? 0;
-  const credits : Credits = getNewCreditInstance();
+  const credits: Credits = getNewCreditInstance();
   credits[CreditType.TherapySession] = params.therapySession ?? 0;
   return {visits, credits};
 }

@@ -10,6 +10,7 @@ export async function updateUserBalances(uid: string, newUserBalance: UserCredit
       {
         visits: newUserBalance.visits,
         credits: newUserBalance.credits,
+        hasMembershipPlanCredits: newUserBalance.hasMembershipPlanCredits,
       },
       {merge: true},
     );

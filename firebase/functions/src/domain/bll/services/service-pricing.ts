@@ -2,6 +2,7 @@ export type PricingInfo = {
   readonly dollars: number;
 }
 export type UserCredits = {
+  readonly hasMembershipPlanCredits?: boolean,
   readonly visits: number,
   readonly credits: Credits,
   readonly orgCredits?: OrganizationCredits
@@ -62,6 +63,7 @@ export function servicePricing(
   }
   return {dollars: cost};
 }
+
 export function getNewCreditInstance(): Credits {
   return {
     VideoVisit: 0,
