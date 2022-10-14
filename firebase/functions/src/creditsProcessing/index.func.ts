@@ -1,7 +1,7 @@
 import {OperationType, TransactionType} from "./types";
 import {Context} from "../ioc";
 import {EitherAsync, enumeration, GetType} from "purify-ts";
-import {processCreditsAndVisits} from "./util";
+import {updateCreditBalance} from "./util";
 import {Interface, NonEmptyString} from "purify-ts-extra-codec";
 
 const Request = Interface({
@@ -16,14 +16,10 @@ const Request = Interface({
 type Request = GetType<typeof Request>
 
 module.exports = (context: Context) => context.functions.https.onRequest(async (req: any, res: any) =>
-  await EitherAsync<string, void>(async ({liftEither, throwE}) => {
+  await EitherAsync<any, void>(async ({liftEither, fromPromise}) => {
       const {userId, transactionInfo}: Request = await liftEither(Request.decode(req.body));
       const {type, id, operation} = transactionInfo;
-      try {
-        await processCreditsAndVisits(userId, type, id, operation);
-      } catch (e: unknown) {
-        throwE(JSON.stringify(e));
-      }
+      await fromPromise(updateCreditBalance(userId, type, id, operation));
     },
   ).caseOf({
     Right: () => res.sendStatus(200),
