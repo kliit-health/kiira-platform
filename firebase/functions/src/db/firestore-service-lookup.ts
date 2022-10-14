@@ -23,7 +23,7 @@ export function firestoreServiceLookup(db: FirestoreDb): ServiceLookup {
         const data = await liftMaybe(Maybe.fromNullable(snapshot.data()));
         const creditType = await liftMaybe(type(data.title));
         const credits = await liftMaybe(Integer.decode(data.credits).toMaybe());
-        return <ServiceCost>{
+        return {
           type: creditType,
           costInVisitCredits: credits,
         };
