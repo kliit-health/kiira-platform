@@ -1,5 +1,5 @@
 import {extendCodec, Integer, Interface, NonEmptyString} from "purify-ts-extra-codec";
-import {Codec, GetType, Left, record, Right} from "purify-ts";
+import {Codec, GetType, Left, nonEmptyList, record, Right} from "purify-ts";
 
 const PositiveInteger = extendCodec(Integer, value => {
   return (value > 0) ? Right(value) : Left(`${value} must be positive`);
@@ -11,13 +11,17 @@ const NonEmptyRecord = <K extends string | number | symbol, V>(keyCodec: Codec<K
     },
   );
 export const AcuitySubscriptionCodec = Interface({
+  id: PositiveInteger,
   certificate: NonEmptyString,
   productID: PositiveInteger,
   orderID: PositiveInteger,
   name: NonEmptyString,
   email: NonEmptyString,
   expiration: NonEmptyString,
+  type: NonEmptyString,
   remainingCounts: NonEmptyRecord(NonEmptyString, PositiveInteger),
+  appointmentTypes: NonEmptyRecord(NonEmptyString, NonEmptyString),
+  appointmentTypeIDs: nonEmptyList(PositiveInteger),
 });
 
 export type AcuitySubscription = GetType<typeof AcuitySubscriptionCodec>;
