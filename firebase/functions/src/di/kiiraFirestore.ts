@@ -40,7 +40,7 @@ export function createKiiraFirestore(firestoreDb: FirestoreDb): KiiraFirestore {
         return {planId: NonEmptyList.head(nel).id};
       });
     },
-    addAcuitySubscriptions(nel: NonEmptyList<any>): EitherAsync<string, void> {
+    addAcuitySubscriptions(nel: NonEmptyList<AcuitySubscription>): EitherAsync<string, void> {
       return EitherAsync(helpers => helpers.throwE("addAcuitySubscriptions is not implemented"));
     },
   };
