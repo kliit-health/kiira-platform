@@ -6,7 +6,7 @@ import {AcuityClient} from "../../di/acuity";
 import {KiiraFirestore} from "../../di/kiiraFirestore";
 import {updateCreditBalance} from "../../creditsProcessing/util";
 import {OperationType, TransactionType} from "../../creditsProcessing/types";
-import {AcuitySubscription} from "../../db/models/AcuitySubscription";
+import {AcuitySubscriptionCodec} from "../../db/models/AcuitySubscription";
 
 function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstName: string; lastName: string; cert: string; id: number; type: DescriptionType }> {
   const tokenizationCodec = tuple([
@@ -28,7 +28,6 @@ function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstN
   });
 }
 
-
 function parseStripeBody(body: unknown): Either<string, StripeData> {
   return StripeData.decode(body);
 }
@@ -37,38 +36,65 @@ function getSubscriptionCharge(stripeData: StripeData): Charge {
   return NonEmptyList.head(stripeData.data.object.charges.data);
 }
 
+function warnIfMultipleSubsArePresent(subCount: number, orderId: number): void {
+  if (subCount > 1) {
+    console.warn(
+      `The number of subscriptions in orderId '${orderId}' was ${subCount}, only the first entry was processed.`,
+    );
+  }
+}
+
+async function createSubscriptions(acuity: AcuityClient, orderId: number, firestore: KiiraFirestore) {
+  return EitherAsync<string, void>(async ({fromPromise, liftEither}) => {
+    const sourceSubs = await fromPromise(
+      acuity.getSubscriptions({orderId}),
+    );
+
+    warnIfMultipleSubsArePresent(sourceSubs.length, orderId);
+
+    const sourceSub = NonEmptyList.head(sourceSubs);
+    const {userId} = await fromPromise(
+      firestore.getUser({email: sourceSub.email}),
+    );
+
+    const {planId} = await fromPromise(
+      firestore.getPlan({title: sourceSub.name}),
+    );
+    const sub = await liftEither(AcuitySubscriptionCodec.decode({...sourceSub, userId, planId}));
+    const subs = NonEmptyList.unsafeCoerce([sub]);
+
+    await fromPromise(firestore.addAcuitySubscriptions({subs}));
+  });
+}
+
+async function getSubscription(firestore: KiiraFirestore, certificate: string) {
+  return EitherAsync<string, { userId: string, planId: string }>(async ({fromPromise}) => {
+    const {planId, userId} = await fromPromise(
+      firestore.getAcuitySubscription({certificateId: certificate}),
+    );
+
+    return {userId, planId};
+  });
+}
+
 const handleRequest = (logger: Logger, body: unknown, acuity: AcuityClient, firestore: KiiraFirestore) =>
   EitherAsync<string, void>(async ({liftEither, throwE, fromPromise}) => {
       const stripeData: StripeData = await liftEither(
         parseStripeBody(body),
       );
-      logger.info("Valid request received.", stripeData);
 
       const charge: Charge = getSubscriptionCharge(stripeData);
-      const {type, id, cert: certificate} = await fromPromise(
-        tokenizeChargeDescription(charge),
-      );
+      const {type, id, cert: certificate} = await fromPromise(tokenizeChargeDescription(charge));
 
       if (type === DescriptionType.Order) {
         if (certificate === "Subscription") {
-          const nel: NonEmptyList<AcuitySubscription> = await fromPromise(
-            acuity.getSubscriptions({orderId: id}),
-          );
-          await fromPromise(firestore.addAcuitySubscriptions(nel));
+          await fromPromise(createSubscriptions(acuity, id, firestore));
+          return;
         }
         throwE("Payment intent was for an order, not for a subscription");
       }
 
-      const email: string = charge.billing_details.email;
-      const {name} = await fromPromise(
-        acuity.getProduct({email, certificate}),
-      );
-      const {userId} = await fromPromise(
-        firestore.getUser({email}),
-      );
-      const {planId} = await fromPromise(
-        firestore.getPlan({title: name}),
-      );
+      const {userId, planId} = await fromPromise(getSubscription(firestore, certificate));
 
       await fromPromise(
         updateCreditBalance(userId, TransactionType.SubscriptionRecurrence, planId, OperationType.Credit)
@@ -110,7 +136,6 @@ const PaymentIntent = Interface({
     data: nonEmptyList(Charge),
   }),
 });
-type PaymentIntent = GetType<typeof PaymentIntent>
 
 const StripeData = Interface({
   type: exactly("payment_intent.succeeded"),

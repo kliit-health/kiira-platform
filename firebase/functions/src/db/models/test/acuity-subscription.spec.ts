@@ -1,9 +1,9 @@
 import {it} from "mocha";
 import {assert} from "chai";
-import {AcuitySubscriptionCodec} from "../AcuitySubscription";
+import {SourceAcuitySubscriptionCodec} from "../AcuitySubscription";
 
 it("should be free for when cost is 0 and balance is 0", () => {
-  const decoded = AcuitySubscriptionCodec.decode(
+  const decoded = SourceAcuitySubscriptionCodec.decode(
     {
       "id": 40647078,
       "certificate": "CB6B8C27",
