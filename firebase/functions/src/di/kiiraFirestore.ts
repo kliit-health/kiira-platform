@@ -1,16 +1,15 @@
-import {EitherAsync, intersect, NonEmptyList} from "purify-ts";
+import {EitherAsync, NonEmptyList} from "purify-ts";
 import {FirestoreDb} from "../db/firestore-db";
 import {AcuitySubscription, AcuitySubscriptionCodec} from "../db/models/AcuitySubscription";
-import {Interface, NonEmptyString} from "purify-ts-extra-codec";
 
 export interface KiiraFirestore {
   getUser(byEmail: { email: string }): EitherAsync<string, UserId>;
 
   getPlan(byTitle: { title: string }): EitherAsync<string, PlanId>;
 
-  addAcuitySubscriptions(by: { userId: string, subs: NonEmptyList<AcuitySubscription> }): EitherAsync<string, void>;
+  addAcuitySubscriptions(by: { subs: NonEmptyList<AcuitySubscription> }): EitherAsync<string, void>;
 
-  getAcuitySubscription(byId: { certificateId: string }): EitherAsync<string, { sub: AcuitySubscription, userId: string }>;
+  getAcuitySubscription(byId: { certificateId: string }): EitherAsync<string, AcuitySubscription>;
 }
 
 let firestore: KiiraFirestore | undefined = undefined;
@@ -18,24 +17,8 @@ let firestore: KiiraFirestore | undefined = undefined;
 export function createKiiraFirestore(firestoreDb: FirestoreDb): KiiraFirestore {
   if (firestore) return firestore;
 
-  const getUser = ({email}: { email: string }) => {
-    return EitherAsync<string, UserId>(async ({liftEither}) => {
-      const snapshot = await firestoreDb.collection("users")
-        .where("email", "==", email)
-        .get();
-
-      const nel = await liftEither(
-        NonEmptyList.fromArray(snapshot.docs).toEither(`No users found with email '${email}'`),
-      );
-
-      return {userId: NonEmptyList.head(nel).id};
-    });
-  };
-
   firestore = {
-    getAcuitySubscription({certificateId}: { certificateId: string }): EitherAsync<string, { sub: AcuitySubscription, userId: string }> {
-      const codec = intersect(AcuitySubscriptionCodec, Interface({userId: NonEmptyString}));
-
+    getAcuitySubscription({certificateId}: { certificateId: string }): EitherAsync<string, AcuitySubscription> {
       return EitherAsync(async ({liftEither, throwE}) => {
         let snapshot: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData> | undefined;
         try {
@@ -45,11 +28,22 @@ export function createKiiraFirestore(firestoreDb: FirestoreDb): KiiraFirestore {
         } catch (e) {
           throwE(`Firebase fetch failed for acuity subscription with id ${certificateId}. Caused by ${JSON.stringify(e)}`);
         }
-        const result = await liftEither(codec.decode(snapshot?.data()));
-        return {userId: result.userId, sub: result};
+        return liftEither(AcuitySubscriptionCodec.decode(snapshot?.data()));
       });
     },
-    getUser,
+    getUser: ({email}: { email: string }) => {
+      return EitherAsync<string, UserId>(async ({liftEither}) => {
+        const snapshot = await firestoreDb.collection("users")
+          .where("email", "==", email)
+          .get();
+
+        const nel = await liftEither(
+          NonEmptyList.fromArray(snapshot.docs).toEither(`No users found with email '${email}'`),
+        );
+
+        return {userId: NonEmptyList.head(nel).id};
+      });
+    },
     getPlan({title}: { title: string }) {
       return EitherAsync<string, PlanId>(async ({liftEither}) => {
         const snapshot = await firestoreDb.collection("plans")
@@ -62,14 +56,14 @@ export function createKiiraFirestore(firestoreDb: FirestoreDb): KiiraFirestore {
       });
     },
     addAcuitySubscriptions(
-      by: { userId: string, subs: NonEmptyList<AcuitySubscription> },
+      by: { subs: NonEmptyList<AcuitySubscription> },
     ): EitherAsync<string, void> {
       return EitherAsync(async () => {
         const batch = firestoreDb.batch();
 
         by.subs.forEach(value => {
           const reference = firestoreDb.collection("acuitySubscriptions").doc(value.certificate);
-          batch.set(reference, {...value, userId: by.userId}, {merge: true});
+          batch.set(reference, value, {merge: true});
         });
         await batch.commit();
       });

@@ -6,6 +6,7 @@ import {AcuityClient} from "../../di/acuity";
 import {KiiraFirestore} from "../../di/kiiraFirestore";
 import {updateCreditBalance} from "../../creditsProcessing/util";
 import {OperationType, TransactionType} from "../../creditsProcessing/types";
+import {AcuitySubscriptionCodec} from "../../db/models/AcuitySubscription";
 
 function tokenizeChargeDescription(charge: Charge): EitherAsync<string, { firstName: string; lastName: string; cert: string; id: number; type: DescriptionType }> {
   const tokenizationCodec = tuple([
@@ -35,33 +36,43 @@ function getSubscriptionCharge(stripeData: StripeData): Charge {
   return NonEmptyList.head(stripeData.data.object.charges.data);
 }
 
+function warnIfMultipleSubsArePresent(subCount: number, orderId: number): void {
+  if (subCount > 1) {
+    console.warn(
+      `The number of subscriptions in orderId '${orderId}' was ${subCount}, only the first entry was processed.`,
+    );
+  }
+}
+
 async function createSubscriptions(acuity: AcuityClient, orderId: number, firestore: KiiraFirestore) {
-  return EitherAsync<string, void>(async ({fromPromise}) => {
-    const subs = await fromPromise(
+  return EitherAsync<string, void>(async ({fromPromise, liftEither}) => {
+    const sourceSubs = await fromPromise(
       acuity.getSubscriptions({orderId}),
     );
 
-    const email: string = NonEmptyList.head(subs).email;
+    warnIfMultipleSubsArePresent(sourceSubs.length, orderId);
 
+    const sourceSub = NonEmptyList.head(sourceSubs);
     const {userId} = await fromPromise(
-      firestore.getUser({email}),
+      firestore.getUser({email: sourceSub.email}),
     );
 
-    await fromPromise(
-      firestore.addAcuitySubscriptions({userId, subs}),
+    const {planId} = await fromPromise(
+      firestore.getPlan({title: sourceSub.name}),
     );
+    const sub = await liftEither(AcuitySubscriptionCodec.decode({...sourceSub, userId, planId}));
+    const subs = NonEmptyList.unsafeCoerce([sub]);
+
+    await fromPromise(firestore.addAcuitySubscriptions({subs}));
   });
 }
 
 async function getSubscription(firestore: KiiraFirestore, certificate: string) {
   return EitherAsync<string, { userId: string, planId: string }>(async ({fromPromise}) => {
-    const {sub, userId} = await fromPromise(
+    const {planId, userId} = await fromPromise(
       firestore.getAcuitySubscription({certificateId: certificate}),
     );
 
-    const {planId} = await fromPromise(
-      firestore.getPlan({title: sub.name}),
-    );
     return {userId, planId};
   });
 }

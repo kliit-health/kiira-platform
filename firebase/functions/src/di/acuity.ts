@@ -2,12 +2,12 @@ import {EitherAsync, NonEmptyList, nonEmptyList} from "purify-ts";
 import {AxiosError, AxiosResponse, default as axios} from "axios";
 import {getSecrets, KiiraSecrets} from "./secrets";
 import {Integer, Interface, NonEmptyString} from "purify-ts-extra-codec";
-import {AcuitySubscription, AcuitySubscriptionCodec} from "../db/models/AcuitySubscription";
+import {SourceAcuitySubscription, SourceAcuitySubscriptionCodec} from "../db/models/AcuitySubscription";
 
 export interface AcuityClient {
   getProduct(byCertificate: { email?: string, certificate: string }): EitherAsync<string, { name: string }>;
 
-  getSubscriptions(param: { orderId: number }): EitherAsync<string, NonEmptyList<AcuitySubscription>>;
+  getSubscriptions(param: { orderId: number }): EitherAsync<string, NonEmptyList<SourceAcuitySubscription>>;
 }
 
 let acuity: AcuityClient | undefined = undefined;
@@ -22,7 +22,7 @@ export function createClient(): AcuityClient {
   });
 
   acuity = {
-    getSubscriptions(param: { orderId: number }): EitherAsync<string, NonEmptyList<AcuitySubscription>> {
+    getSubscriptions(param: { orderId: number }): EitherAsync<string, NonEmptyList<SourceAcuitySubscription>> {
       return EitherAsync(async ({liftEither, throwE}) => {
         let response: AxiosResponse | undefined = undefined;
         try {
@@ -32,7 +32,7 @@ export function createClient(): AcuityClient {
           throwE(`${axiosError.message}, response=${JSON.stringify(axiosError.response?.data)}`);
         }
         return liftEither(
-          nonEmptyList(AcuitySubscriptionCodec)
+          nonEmptyList(SourceAcuitySubscriptionCodec)
             .decode(response?.data)
             .mapLeft(() => `There were no certificates found for the orderId: ${param.orderId}`),
         );
