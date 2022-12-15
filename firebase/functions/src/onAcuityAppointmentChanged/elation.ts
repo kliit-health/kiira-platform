@@ -277,7 +277,7 @@ export class ElationApi {
         physician: physician.id,
         practice: physician.practice,
         duration: parseInt(appt.duration),
-        reason: "Check intake form.",
+        reason: this.getElationAppointmentType(appt.appointmentTypeID),
       };
       return fromPromise(postAppointment(this.auth, elationAppt, logger));
     });
@@ -300,5 +300,18 @@ export class ElationApi {
 
   cancelAppointmentAsync(elationId: ElationAppointmentId): EitherAsync<Error, void> {
     return patchAppointmentCancelled(this.auth, elationId);
+  }
+
+  getElationAppointmentType(acuityAppointmentTypeId: number): string {
+    const appoinmentTypes = {
+      "24164653": "Check intake form.",
+      "16299344": "Consultation - Gynecology",
+      "38064100": "New Patient - Primary Care",
+      "22763871": "Mental Health Visit",
+    };
+
+    type AppointmentTypeKeys = keyof typeof appoinmentTypes;
+
+    return appoinmentTypes[acuityAppointmentTypeId.toString() as AppointmentTypeKeys];
   }
 }
