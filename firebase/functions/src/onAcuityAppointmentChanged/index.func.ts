@@ -1,5 +1,6 @@
 import {AcuityAppointment, AcuityAppointmentId, ElationAppointmentId, KiiraSecrets} from "./types";
 import {authenticate, ElationApi} from "./elation";
+import {firestore} from "firebase-admin";
 import * as kiira from "./kiira";
 import * as acuity from "./acuity";
 import {EitherAsync} from "purify-ts";
@@ -35,6 +36,9 @@ module.exports = (context: Context) => {
       const body = request.body;
       logger.info("Valid request received.", body);
       const {id, action} = body;
+
+      // add new document to /acuityAppointments
+      await firestore().collection("acuityAppointments").add(body);
 
       const result = await syncAppointment(secrets, id, action)
         .ifLeft(error => logger.info("Sync to elation failed.", {reason: {message: error.message, error}}))
