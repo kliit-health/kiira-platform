@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B1BE5C88-8F24-414F-8B5F-C7B8FC9B801D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiira.Core.Domain", "src\Kiira.Core.Domain\Kiira.Core.Domain.csproj", "{D86905ED-5AFA-4969-8165-A57726ECCAC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiira.Core.Application", "src\Kiira.Core.Application\Kiira.Core.Application.csproj", "{7B45669C-EB23-46C8-A3AD-75753E2E5886}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D86905ED-5AFA-4969-8165-A57726ECCAC0} = {B1BE5C88-8F24-414F-8B5F-C7B8FC9B801D}
+		{7B45669C-EB23-46C8-A3AD-75753E2E5886} = {B1BE5C88-8F24-414F-8B5F-C7B8FC9B801D}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D86905ED-5AFA-4969-8165-A57726ECCAC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D86905ED-5AFA-4969-8165-A57726ECCAC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D86905ED-5AFA-4969-8165-A57726ECCAC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D86905ED-5AFA-4969-8165-A57726ECCAC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B45669C-EB23-46C8-A3AD-75753E2E5886}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B45669C-EB23-46C8-A3AD-75753E2E5886}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B45669C-EB23-46C8-A3AD-75753E2E5886}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B45669C-EB23-46C8-A3AD-75753E2E5886}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
